@@ -1,8 +1,9 @@
-# Byggeinstruktion: Messespil til uddannelsesmesse (HHX · EUX)
+# Byggeinstruktion: Messespil til uddannelsesmesse (HHX | EUX)
 
 Denne fil er en komplet specifikation til Claude Code. Byg præcis det, der står her. Hvor noget er markeret `TODO-FAKTA`, er værdien ikke endeligt tjekket og rettes senere af Jakob. Byg med værdien, som den står.
 
 **Version 3.** Ændringer i forhold til version 2:
+- Fordomme opdateret efter "Fordomme HHX/EUX uddannelsesmesse", udkast v3 (8. oktober 2026). Separator mellem HHX og EUX er pipe: "HHX | EUX".
 - Slikboden er bygget om: hver runde er et tilfældigt scenarie, og det bedste valg følger af scenariet. Boden er tegnet, og tegningen følger valgene.
 - Linjen "Tæt på dig. Tæt på virkeligheden." er erstattet af "Virkelighedsnært. Virksomhedsnært." (muleposernes sprog).
 - Orange bruges kun med sort eller hvid tekst. Navy på orange er forbudt.
@@ -71,7 +72,7 @@ Denne fil er en komplet specifikation til Claude Code. Byg præcis det, der stå
 ```
 
 ### 4.1 Startskærm
-- Øverst: "HHX · EUX" (lille, navy).
+- Øverst: "HHX | EUX" (lille, navy). Separator er altid pipe `|`, aldrig prik.
 - Overskrift: "Spil og hent din pose"
 - Undertekst: "Vælg et spil. Det tager under to minutter."
 - To store valgkort (kan trykkes):
@@ -86,7 +87,7 @@ Denne fil er en komplet specifikation til Claude Code. Byg præcis det, der stå
 - Resultatlinje fra spillet (fx "Du ramte 6 ud af 8" eller "5 af 6 gode valg. Overskud: 820 kr").
 - **Levende ur** i stor tekst i en hvid boks med navy tekst: klokkeslæt med sekunder (`14:32:07`), opdateret hvert sekund, og under det dagens dato (`torsdag 9. oktober`). Brug enhedens tid. Et skærmbillede viser et ur, der står stille eller viser forkert tid. Standpersonalet skal ikke kende nogen kode.
 - Instruktion: "Vis skærmen ved standen og få din pose."
-- Nederst: `CONFIG.afsender.linje`, "HHX · EUX" og `CONFIG.afsender.skole`.
+- Nederst: `CONFIG.afsender.linje`, "HHX | EUX" og `CONFIG.afsender.skole`.
 - Knap (sekundær, diskret): "Spil igen" → startskærm.
 - Bevis-skærmen må ikke kunne nås via URL-hash, query-parameter eller direkte link; kun ved at gennemføre et spil.
 
@@ -123,10 +124,10 @@ Feltformat: `{ id, udsagn, svar: "fordom" | "virkelighed" | "begge", forklaring,
 |---|---|---|---|---|---|---|
 | f1 | HHX er den nemme vej til en studenterhue. | fordom | Samme adgangskrav. Samme hue. Samme adgang til videregående uddannelser. | adgang | ja | TODO-FAKTA: nuværende adgangskrav |
 | f2 | På HHX skal du være totalt matematisk og nørdet. | fordom | Du får matematik. Du bruger det på priser, budgetter og regnskaber. | | ja | TODO-FAKTA: niveau og indhold i læreplanen |
-| f3 | Du har kun valgt HHX, fordi du ikke vil have fysik og kemi. | begge | Og? Det er en god grund. | | ja | TODO-FAKTA: at ingen naturvidenskabelige fag er obligatoriske |
-| f4 | Du skal på CBS, når du er færdig med HHX. | fordom | Jura, psykologi, lærer, sygeplejerske. HHX giver adgang til mere end økonomi. | | ja | TODO-FAKTA: adgangskrav for de nævnte uddannelser |
-| f5 | For at starte på HHX skal du kunne C25-indekset. | fordom | Virksomhedsøkonomi og afsætning er nye fag for alle. Alle starter fra nul. | nyt-fag | ja | |
-| f6 | HHX er kun for folk med lyseblå skjorter og designertasker. | fordom | Hver tredje gymnasieelev med faglærte forældre vælger HHX. | | ja | TODO-FAKTA: præcis formulering i AE's analyse |
+| f3 | Du har kun valgt HHX, fordi du ikke vil have fysik og kemi. | begge | Ja. Og? | | ja | TODO-FAKTA: at ingen naturvidenskabelige fag er obligatoriske |
+| f4 | Du skal læse økonomi eller være revisor, når du er færdig med HHX. | fordom | Jura, psykologi, lærer, sygeplejerske. HHX giver adgang til mere end økonomi. | | ja | TODO-FAKTA: adgangskrav for de nævnte uddannelser |
+| f5 | De nye fag er svære, og man skal vide en masse om virksomheder. | fordom | Virksomhedsøkonomi og afsætning er nye fag for alle. Alle starter fra nul. | nyt-fag | ja | |
+| f6 | HHX er kun for folk med lyseblå skjorter, dyre sko og designertasker. | fordom | Hver tredje gymnasieelev med faglærte forældre vælger HHX. | | ja | TODO-FAKTA: formuleringen følger Altinget/AE (andel af faglærtes børn). Udkastets "hver tredje HHX-elev har faglærte forældre" svarer ikke til kilden |
 | f7 | Du har kun valgt HHX, fordi du vil tjene mange penge. | begge | PLADSHOLDER: elevcitat | | **nej** | Aktiveres, når elevcitat findes |
 | f8 | Elever på HHX har rundsave på albuerne. | fordom | PLADSHOLDER: elevcitat | | **nej** | Aktiveres, når elevcitat findes |
 | f9 | EUX er for dem, der ikke kan klare gymnasiet. | fordom | Du får en gymnasial eksamen og en erhvervsuddannelse. Og adgang til videregående uddannelser. | | ja | TODO-FAKTA: formulering om studiekompetence på ug.dk eller i EUX-loven |
@@ -159,9 +160,9 @@ Hver runde giver spilleren en tilfældig situation: et sted, en kundegruppe, et 
 
 | Valg | Muligheder |
 |---|---|
-| Pris pr. pose | 10 kr · 15 kr · 20 kr |
-| Indkøb | 20 · 40 · 60 · 80 poser (5 kr/stk) |
-| Markedsføring | Intet (0 kr) · Skilt (20 kr) · SoMe-opslag (50 kr) |
+| Pris pr. pose | 10 kr / 15 kr / 20 kr |
+| Indkøb | 20 / 40 / 60 / 80 poser (5 kr/stk) |
+| Markedsføring | Intet (0 kr) / Skilt (20 kr) / SoMe-opslag (50 kr) |
 
 3. "Boden er åben" (max 1,5 sek): kunder går hen til boden, poserne forsvinder fra hylden, og en tæller for solgte poser løber op. Med `prefers-reduced-motion` vises slutresultatet med det samme.
 4. **Rundens resultat:** tegning af boden med de usolgte poser, tal (kunder, solgte poser, omsætning, udgifter, overskud) og tre vurderinger, én pr. valg:
@@ -213,7 +214,7 @@ Justér kun `CONFIG`-tal, hvis kravene ikke er opfyldt.
 ```js
 const CONFIG = {
   afsender: {
-    produkter: "HHX · EUX",
+    produkter: "HHX | EUX",
     linje: "Virkelighedsnært. Virksomhedsnært.",
     skole: "Handelsgymnasiet Vestfyn"
   },

@@ -1,4 +1,4 @@
-# Messespil (HHX · EUX)
+# Messespil (HHX | EUX)
 
 Mobilspil til uddannelsesmesser. Besøgende scanner en QR-kode, gennemfører et af to spil og viser bevis-skærmen ved standen for at få en mulepose. Hele produktet er én fil: `index.html`.
 

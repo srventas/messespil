@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#004998">
 <meta name="robots" content="noindex">
-<title>Spil og hent din pose · HHX · EUX</title>
+<title>Spil og hent din pose | HHX | EUX</title>
 <style>
   :root {
     --blaa: #004998;
@@ -358,7 +358,7 @@
 // Alt indhold kan rettes her uden at røre logikken nedenfor.
 const CONFIG = {
   afsender: {
-    produkter: "HHX · EUX",
+    produkter: "HHX | EUX",
     linje: "Virkelighedsnært. Virksomhedsnært.",
     skole: "Handelsgymnasiet Vestfyn"
   },
@@ -371,22 +371,22 @@ const CONFIG = {
       // svar: "fordom" | "virkelighed" | "begge". Kort med samme gruppe kommer aldrig i samme spil.
       { id: "f1", udsagn: "HHX er den nemme vej til en studenterhue.", svar: "fordom",
         forklaring: "Samme adgangskrav. Samme hue. Samme adgang til videregående uddannelser.",
-        gruppe: "adgang", aktiv: true, tjek: "TODO-FAKTA: nuværende adgangskrav" },
+        gruppe: "adgang", aktiv: true, tjek: "TODO-FAKTA: gældende adgangskrav (forslag om krav på 6 fra dec. 2024, status ukendt)" },
       { id: "f2", udsagn: "På HHX skal du være totalt matematisk og nørdet.", svar: "fordom",
         forklaring: "Du får matematik. Du bruger det på priser, budgetter og regnskaber.",
         aktiv: true, tjek: "TODO-FAKTA: niveau og indhold i læreplanen" },
       { id: "f3", udsagn: "Du har kun valgt HHX, fordi du ikke vil have fysik og kemi.", svar: "begge",
-        forklaring: "Og? Det er en god grund.",
+        forklaring: "Ja. Og?",
         aktiv: true, tjek: "TODO-FAKTA: at ingen naturvidenskabelige fag er obligatoriske" },
-      { id: "f4", udsagn: "Du skal på CBS, når du er færdig med HHX.", svar: "fordom",
+      { id: "f4", udsagn: "Du skal læse økonomi eller være revisor, når du er færdig med HHX.", svar: "fordom",
         forklaring: "Jura, psykologi, lærer, sygeplejerske. HHX giver adgang til mere end økonomi.",
         aktiv: true, tjek: "TODO-FAKTA: adgangskrav for de nævnte uddannelser" },
-      { id: "f5", udsagn: "For at starte på HHX skal du kunne C25-indekset.", svar: "fordom",
+      { id: "f5", udsagn: "De nye fag er svære, og man skal vide en masse om virksomheder.", svar: "fordom",
         forklaring: "Virksomhedsøkonomi og afsætning er nye fag for alle. Alle starter fra nul.",
         gruppe: "nyt-fag", aktiv: true },
-      { id: "f6", udsagn: "HHX er kun for folk med lyseblå skjorter og designertasker.", svar: "fordom",
+      { id: "f6", udsagn: "HHX er kun for folk med lyseblå skjorter, dyre sko og designertasker.", svar: "fordom",
         forklaring: "Hver tredje gymnasieelev med faglærte forældre vælger HHX.",
-        aktiv: true, tjek: "TODO-FAKTA: præcis formulering i AE's analyse" },
+        aktiv: true, tjek: "TODO-FAKTA: Altinget/AE siger 'hver tredje elev med faglærte forældre vælger hhx'. Udkastets 'hver tredje HHX-elev har faglærte forældre' svarer ikke til kilden. Find tallet i AE-analysen." },
       { id: "f7", udsagn: "Du har kun valgt HHX, fordi du vil tjene mange penge.", svar: "begge",
         forklaring: "PLADSHOLDER: elevcitat",
         aktiv: false, tjek: "Aktiveres, når elevcitat findes" },

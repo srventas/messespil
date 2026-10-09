@@ -6,7 +6,7 @@ const path = require("path");
 
 const SKAERMBILLEDER = path.join(__dirname, "screenshots");
 const AXE = require.resolve("axe-core/axe.min.js");
-const FORBUDT = /vind|vundet|PLADSHOLDER|TODO|[–—]/i;
+const FORBUDT = /vind|vundet|PLADSHOLDER|TODO|[–—·]/i; // prik som separator er erstattet af pipe
 
 async function aaben(page, seed) {
   await page.goto(seed === undefined ? "/index.html" : `/index.html?seed=${seed}`);
