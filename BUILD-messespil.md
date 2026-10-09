@@ -2,7 +2,12 @@
 
 Denne fil er en komplet specifikation til Claude Code. Byg præcis det, der står her. Hvor noget er markeret `TODO-FAKTA`, er værdien ikke endeligt tjekket og rettes senere af Jakob. Byg med værdien, som den står.
 
-**Version 2.** Ændringer i forhold til version 1:
+**Version 3.** Ændringer i forhold til version 2:
+- Slikboden er bygget om: hver runde er et tilfældigt scenarie, og det bedste valg følger af scenariet. Boden er tegnet, og tegningen følger valgene.
+- Linjen "Tæt på dig. Tæt på virkeligheden." er erstattet af "Virkelighedsnært. Virksomhedsnært." (muleposernes sprog).
+- Orange bruges kun med sort eller hvid tekst. Navy på orange er forbudt.
+
+Ændringer i version 2 i forhold til version 1:
 - Spil 1 trækker 8 tilfældige kort fra en pulje i stedet for 8 faste kort.
 - Slikbodens model er ombygget, så ingen opskrift vinder hver gang. Dagens hændelse vises nu før valget.
 - Kravet om intet skolenavn er droppet.
@@ -16,7 +21,7 @@ Denne fil er en komplet specifikation til Claude Code. Byg præcis det, der stå
 - Et lille mobilspil, som besøgende ved en messestand åbner via en QR-kode.
 - Når et spil er gennemført, vises en **bevis-skærm**, som spilleren viser ved standen og får udleveret en mulepose.
 - Målgruppe: elever i 8.–10. klasse (14–16 år), på egen telefon, stående ved en stand med dårlig dækning.
-- Branding: "HHX", "EUX", linjen "Tæt på dig. Tæt på virkeligheden." og skolens navn (fra `CONFIG.afsender.skole`).
+- Branding: "HHX", "EUX", linjen "Virkelighedsnært. Virksomhedsnært." (fra `CONFIG.afsender.linje`) og skolens navn (fra `CONFIG.afsender.skole`).
 - **Afvikling uden Jakob:** Spillet skal kunne køre en hel messedag, uden at nogen ændrer, deployer eller husker noget. Standpersonalet skal kun kunne genkende en gyldig bevis-skærm (se afsnit 4.2 og 10).
 
 ## 2. Ufravigelige krav
@@ -45,12 +50,13 @@ Denne fil er en komplet specifikation til Claude Code. Byg præcis det, der stå
 | Lys blå (lys baggrund, kort) | `#CCD7EA` |
 | Grøn (positiv feedback, highlight) | `#79DEA8` |
 | Orange (**kun** primær CTA-knap, fx "Start" og "Vis bevis") | `#FF6B00` |
+| Sort (kun tekst på orange) | `#000000` |
 | Hvid | `#FFFFFF` |
 
 **Læsbarhedsregler:**
 - Hvid tekst **kun** på `#004998` eller `#003764`.
 - På grøn, lys blå og hvid baggrund: navy tekst.
-- Orange bruges aldrig som fladebaggrund, kun på CTA-knapper (med navy eller hvid tekst; vælg den med bedst kontrast og verificér AA).
+- Orange bruges aldrig som fladebaggrund, kun på CTA-knapper, og kun med sort eller hvid tekst. Hvid på orange har kontrast 2,85:1 og består ikke AA, så brug **sort** (7,4:1). Navy eller blå på orange er forbudt.
 - Forkert svar markeres **ikke** med rødt eller kryds. Brug neutral navy/lys blå.
 
 **Typografi:** Systemfont-stack (`system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`). Fed, stor, rund og venlig. Brandfonten Nudista må ikke indlejres (licens uafklaret).
@@ -70,17 +76,17 @@ Denne fil er en komplet specifikation til Claude Code. Byg præcis det, der stå
 - Undertekst: "Vælg et spil. Det tager under to minutter."
 - To store valgkort (kan trykkes):
   - **Fordom eller virkelighed?**: "8 udsagn. Swipe dem på plads." ca. 1 min
-  - **Slikboden**: "Driv en slikbod i 2 dage. Hvor meget tjener du?" ca. 2 min
+  - **Slikboden**: "Læs situationen, og sæt boden op. Træf de gode valg." ca. 2 min
 - Nederst, lille: `CONFIG.afsender.skole`.
 
 ### 4.2 Bevis-skærm (fælles afslutning)
 - Baggrund `#004998`, hvid tekst.
 - Stort animeret flueben (SVG, tegnes ind og pulserer derefter langsomt i en uendelig løkke).
 - Overskrift: "Gennemført!"
-- Resultatlinje fra spillet (fx "Du ramte 6 ud af 8" eller "Dit overskud: 312 kr").
+- Resultatlinje fra spillet (fx "Du ramte 6 ud af 8" eller "5 af 6 gode valg. Overskud: 820 kr").
 - **Levende ur** i stor tekst i en hvid boks med navy tekst: klokkeslæt med sekunder (`14:32:07`), opdateret hvert sekund, og under det dagens dato (`torsdag 9. oktober`). Brug enhedens tid. Et skærmbillede viser et ur, der står stille eller viser forkert tid. Standpersonalet skal ikke kende nogen kode.
 - Instruktion: "Vis skærmen ved standen og få din pose."
-- Nederst: "Tæt på dig. Tæt på virkeligheden.", "HHX · EUX" og `CONFIG.afsender.skole`.
+- Nederst: `CONFIG.afsender.linje`, "HHX · EUX" og `CONFIG.afsender.skole`.
 - Knap (sekundær, diskret): "Spil igen" → startskærm.
 - Bevis-skærmen må ikke kunne nås via URL-hash, query-parameter eller direkte link; kun ved at gennemføre et spil.
 
@@ -141,104 +147,66 @@ Aktiv pulje: 7 fordom, 1 begge, 6 virkelighed. Med grupperne kan der altid træk
 
 ## 6. Spil 2: "Slikboden"
 
-### Fortælling
-"Du driver en slikbod på messen i 2 dage. Se dagens nyhed, og vælg pris, indkøb og markedsføring. Hvor meget tjener du?"
+### Idé
+Hver runde giver spilleren en tilfældig situation: et sted, en kundegruppe, et antal gæster og et vejr. Spilleren læser situationen og sætter boden op. Det bedste valg følger af situationen, så "kriterierne" skifter med scenariet, men kan altid læses ud af teksten. Det er ikke et gættespil.
 
 ### Mekanik
-1. Intro-skærm med fortællingen + knap "Åbn boden".
-2. **2 runder** (Dag 1 og Dag 2). Hver runde = én skærm:
-   - Øverst: **Dagens nyhed** (hændelsens tekst), fx "En skoleklasse med lommepenge kommer forbi." Hændelsen vises **før** valget, så valget giver mening.
-   - Tre valg (segmenterede knapper, ét valg pr. række, forvalgt: midterste mulighed):
+1. Intro-skærm med tegning af boden, fortællingen og knappen "Åbn boden".
+2. **2 runder.** De to runder har altid forskellige kundegrupper. Hver runde = én skærm:
+   - Scenariekort: sted (overskrift), kundegruppens beskrivelse, antal gæster og vejr.
+   - Tegning af boden, der følger valgene: prisskiltet viser prisen, hylden viser én pose pr. 10 indkøbte, og foran boden står et skilt eller en telefon med et like, alt efter markedsføringen.
+   - Tre valg (segmenterede knapper). **Intet er forvalgt.** "Åbn boden" er deaktiveret, til alle tre er valgt, og en linje siger, hvad der mangler. Når alt er valgt, vises dagens udgifter.
 
 | Valg | Muligheder |
 |---|---|
-| Pris pr. pose | 5 kr · 10 kr · 15 kr |
-| Indkøb | 20 · 40 · 60 poser (indkøbspris 4 kr/stk) |
-| Markedsføring | Intet (0 kr) · Håndskrevet skilt (20 kr) · Opslag på SoMe (50 kr) |
+| Pris pr. pose | 10 kr · 15 kr · 20 kr |
+| Indkøb | 20 · 40 · 60 · 80 poser (5 kr/stk) |
+| Markedsføring | Intet (0 kr) · Skilt (20 kr) · SoMe-opslag (50 kr) |
 
-   Knap: "Åbn boden for i dag".
-3. Kort "dagen går"-animation (max 1,5 sek): en tæller for solgte poser løber op.
-4. **Dagsresultat-skærm**:
-   - Kunder der ville købe, solgte poser, omsætning, udgifter, overskud.
-   - **Én** forklaringslinje (den første, der passer, efter reglerne nedenfor).
-   - Knap: "Næste dag" / "Se resultat".
-5. Efter Dag 2 → afslutningsskærm:
-   - "Dit samlede overskud: X kr" (kan være negativt; vis det neutralt, fx "Underskud: 40 kr").
-   - Læringslinje: "Pris, lager og markedsføring. Det er afsætning og virksomhedsøkonomi. Det har du på HHX og EUX."
-   - Knap "Vis bevis" (orange) → bevis-skærm med resultatlinjen "Dit overskud: X kr" (eller "Dit underskud: X kr").
+3. "Boden er åben" (max 1,5 sek): kunder går hen til boden, poserne forsvinder fra hylden, og en tæller for solgte poser løber op. Med `prefers-reduced-motion` vises slutresultatet med det samme.
+4. **Rundens resultat:** tegning af boden med de usolgte poser, tal (kunder, solgte poser, omsætning, udgifter, overskud) og tre vurderinger, én pr. valg:
+   - Godt valg: grøn boks, "Pris: 15 kr. Godt valg." + forklaring.
+   - Ikke godt: lys blå boks, "Pris: 10 kr. Bedst: 20 kr." + forklaring. **Ingen rød farve, intet kryds.**
+   - Pris og markedsføring forklares med kundegruppens tekst. Indkøb forklares med tal: "Du løb tør. 12 kunder gik forgæves." eller "9 poser blev ikke solgt."
+   - Var markedsføring spildt, fordi boden blev udsolgt alligevel, siges det direkte i stedet for gruppens tekst.
+5. Afslutning: "Gode valg: X af 6", overskud pr. runde og samlet, læringslinjen og "Vis bevis" (orange).
+6. Bevis-skærm med resultatlinjen "X af 6 gode valg. Overskud: Y kr" (eller "Underskud: Y kr").
 
-### Model (læg alle tal i `CONFIG.spil2`)
-
-Hændelsernes faktor afhænger af prisen. Det er det, der gør, at den bedste opskrift skifter fra dag til dag.
+### Model (alt i `CONFIG.spil2`)
 
 ```
-grundefterspørgsel = { 5: 55, 10: 40, 15: 25 }      // kunder pr. dag ved prisen
-markedsføring      = { intet: {pris:0,  faktor:1.00},
-                       skilt: {pris:20, faktor:1.25},
-                       some:  {pris:50, faktor:1.40} }
-indkøbspris        = 4                              // kr pr. pose
-hændelser = [
-  { tekst: "Solskin. Mange gæster i dag.",                      faktor: {5:1.25, 10:1.25, 15:1.25} },
-  { tekst: "Regnvejr. Færre gæster i dag.",                     faktor: {5:0.75, 10:0.75, 15:0.75} },
-  { tekst: "Almindelig dag på messen.",                         faktor: {5:1.00, 10:1.00, 15:1.00} },
-  { tekst: "En skoleklasse med lommepenge kommer forbi.",       faktor: {5:1.40, 10:1.10, 15:0.70} },
-  { tekst: "Konkurrenten ved siden af giver gratis slik.",      faktor: {5:1.00, 10:0.80, 15:0.60} },
-  { tekst: "Forældredag. Mange voksne med penge på lommen.",    faktor: {5:0.90, 10:1.10, 15:1.50} }
-]
-
-efterspørgsel = round( grundefterspørgsel[pris] * markedsføring.faktor * hændelse.faktor[pris] )
+scenarie      = tilfældig kundegruppe + tilfældigt sted fra gruppen + tilfældigt antal + tilfældigt vejr
+efterspørgsel = round( antal.kunder × vejr.faktor × gruppe.pris[pris] × gruppe.mf[markedsføring] )
 solgt         = min( indkøb, efterspørgsel )
-omsætning     = solgt * pris
-udgifter      = indkøb * indkøbspris + markedsføring.pris
-overskud      = omsætning - udgifter
-usolgt        = indkøb - solgt          // går tabt
-forgæves      = efterspørgsel - solgt   // kunder uden varer
+omsætning     = solgt × pris
+udgifter      = indkøb × 5 + markedsføringens pris
+overskud      = omsætning − udgifter
 ```
 
-- Hændelse vælges tilfældigt pr. dag, men **Dag 1 og Dag 2 må ikke få samme hændelse**.
-- Seed-mulighed (`?seed=123` i URL) til test, så resultater kan reproduceres. Uden seed: `Math.random`.
-
-**Forventet balance** (forhåndsberegnet; `balance.js` skal bekræfte den):
-
-| Hændelse | Bedste opskrift | Overskud | 10 kr / 40 / skilt |
+| Kundegruppe | Pris-faktor 10 / 15 / 20 kr | Markedsføring intet / skilt / SoMe | Typisk bedst |
 |---|---|---|---|
-| Solskin | 15 kr / 40 / skilt | 405 | 220 |
-| Regnvejr | 15 kr / 20 / intet | 205 | 200 |
-| Almindelig | 15 kr / 40 / SoMe | 315 | 220 |
-| Skoleklasse | 10 kr / 60 / SoMe | 310 | 220 |
-| Konkurrent | 10 kr / 40 / skilt | 220 | 220 |
-| Forældredag | 15 kr / 60 / SoMe | 505 | 220 |
+| Børn med lommepenge | 1,40 / 0,50 / 0,25 | 1,00 / 1,30 / 1,00 | 10 kr, skilt |
+| Unge på telefonen | 1,20 / 1,00 / 0,50 | 1,00 / 1,00 / 1,60 | 15 kr, SoMe |
+| Voksne, der betaler for kvalitet | 1,00 / 1,00 / 0,85 | 1,00 / 1,35 / 1,10 | 20 kr, skilt |
+| Sultne fans ved indgangen | 1,10 / 1,00 / 0,55 | 1,00 / 1,00 / 1,00 | 15 kr, intet |
 
-5 kr giver aldrig over 60 kr. Det er bevidst: lav pris, høj omsætning, næsten ingen fortjeneste. Forklaringslinje 1 gør pointen tydelig.
+Antal gæster: 25, 40 eller 55. Vejr: almindeligt (1,0), regn (0,8) eller sol (1,2). Det giver 36 talmæssigt forskellige scenarier og 72 med stederne.
 
-### Forklaringslinje (prioriteret, vis den første, der passer)
+### Hvad er et "godt valg"?
+Spillet regner alle 36 kombinationer igennem for scenariet (`godGraense` = 0,9):
+- **Pris** er god, hvis den bedste kombination med den pris giver mindst 90 % af det bedst mulige overskud.
+- **Markedsføring** vurderes på samme måde.
+- **Indkøb** vurderes ud fra spillerens egen pris og markedsføring: godt, hvis det giver mindst 90 % af det bedste indkøb med de valg. Så straffes man ikke to gange for en forkert pris.
 
-Hjælpestørrelser:
-- `solgtUden` = min(indkøb, round(grundefterspørgsel[pris] × hændelse.faktor[pris])) // samme dag uden markedsføring
-- `ekstraSolgt` = solgt − solgtUden
-- `ekstraKunder` = efterspørgsel − round(grundefterspørgsel[pris] × hændelse.faktor[pris])
+### Kvalitetskrav (verificér med `test/scenarier.js`)
+Scriptet læser `CONFIG` og modellen fra `index.html`, gennemregner alle scenarier og fejler (exit-kode 1), hvis et krav ikke er opfyldt:
+- S1: Hver pris, hvert indkøb og hvert markedsføringsvalg er det bedste i mindst ét scenarie.
+- S2: Kundegruppen afgør pris og markedsføring. For hver gruppe er samme pris bedst i mindst 75 % af gruppens scenarier, og mindst 3 grupper har hver sin typiske pris. Det samme for markedsføring med mindst 2 forskellige.
+- S3: I intet scenarie er mere end én parameter ligegyldig (alle muligheder gode).
+- S4: Det bedste valg giver altid overskud.
+- S5: Underskud er muligt med dårlige valg.
 
-Regler:
-1. `pris = 5` → "Du solgte {solgt} poser, men tjente kun 1 kr pr. pose. Lav pris kræver kæmpe salg."
-2. `forgæves >= 5` → "Du løb tør. {forgæves} kunder gik forgæves. Køb mere ind næste gang?"
-3. `usolgt >= 10` → "Du købte {usolgt} poser for meget. De blev for gamle."
-4. Markedsføring ≠ intet og `ekstraSolgt × pris < mf.pris` → "Markedsføringen kostede mere, end den gav."
-5. Markedsføring ≠ intet ellers → "Markedsføringen gav {ekstraKunder} ekstra kunder for {mf.pris} kr."
-6. `pris = 15` → "Høj pris giver færre kunder. Men mere pr. pose."
-7. Fallback → "God balance mellem pris og lager."
-
-Regel 4 regner på **solgte** ekstra poser, ikke ekstra kunder. Var lageret allerede tomt, giver flere kunder ingen penge. Indkøbet er det samme med og uden markedsføring, så omsætningen fra de ekstra solgte poser sammenlignes direkte med markedsføringens pris.
-
-### Balancekrav (verificér med `test/balance.js`)
-Scriptet udskriver overskud for alle 27 kombinationer × 6 hændelser og fejler (exit-kode 1), hvis et krav ikke er opfyldt:
-- B1: Ingen kombination er bedst på alle hændelser. Mindst 4 forskellige kombinationer er bedst på mindst én hændelse.
-- B2: Både 10 kr og 15 kr er bedste pris på mindst 2 hændelser hver.
-- B3: Mindst 2 forskellige markedsføringsvalg er en del af en bedste kombination.
-- B4: På hver hændelse er den bedste højst 25 % bedre end den næstbedste.
-- B5: "Fornuftig spiller" (10 kr, 40 poser, skilt) giver overskud på alle hændelser.
-- B6: Underskud er muligt på mindst én hændelse.
-
-Justér **kun** `CONFIG`-tal, hvis kravene ikke er opfyldt, og rapportér justeringerne.
+Justér kun `CONFIG`-tal, hvis kravene ikke er opfyldt.
 
 ## 7. CONFIG-skabelon
 
@@ -246,7 +214,7 @@ Justér **kun** `CONFIG`-tal, hvis kravene ikke er opfyldt, og rapportér juster
 const CONFIG = {
   afsender: {
     produkter: "HHX · EUX",
-    linje: "Tæt på dig. Tæt på virkeligheden.",
+    linje: "Virkelighedsnært. Virksomhedsnært.",
     skole: "Handelsgymnasiet Vestfyn"
   },
   spil1: { antal: 8, minVirkelighed: 2, maxVirkelighed: 4, kort: [ /* se tabeller i afsnit 5 */ ] },
@@ -260,7 +228,7 @@ const CONFIG = {
 messespil/
   index.html          // hele produktet (leveres)
   test/
-    balance.js        // balancetest af Spil 2 (Node). Læser CONFIG fra index.html, så der kun er én kilde.
+    scenarier.js      // kvalitetstest af Slikbodens scenarier (Node). Læser CONFIG og modellen fra index.html.
     e2e.spec.js       // Playwright-test (se nedenfor)
     screenshots/
   README.md           // hvordan man ændrer kort og tal, hvordan man hoster, og standguiden (afsnit 10)
@@ -276,9 +244,11 @@ Kør i mobil-viewport (iPhone 13 og Pixel 7 i Playwright):
 - [ ] Spil 1: over 200 trækninger med forskellige seeds overholder alle trækregler (8 kort, kun aktive, maks. ét pr. gruppe, 2–4 virkelighed/begge).
 - [ ] Spil 1: "Spil igen" i samme besøg giver kun sete kort, når de usete er brugt op.
 - [ ] Kort med `svar: "begge"` tæller som rigtigt uanset swiperetning.
-- [ ] Startskærm → Spil 2 → 2 dage → afslutning → bevis-skærm med overskud.
-- [ ] Spil 2: dagens nyhed vises på valgskærmen før "Åbn boden for i dag".
-- [ ] Dag 1 og Dag 2 har forskellige hændelser.
+- [ ] Startskærm → Spil 2 → 2 runder → afslutning → bevis-skærm med "X af 6 gode valg. Overskud: Y kr".
+- [ ] Spil 2: "Åbn boden" er deaktiveret, til pris, indkøb og markedsføring er valgt. Intet er forvalgt.
+- [ ] Spil 2: de to runder har forskellige kundegrupper.
+- [ ] Spil 2: det bedste valg i begge runder giver 6 af 6 og det bedst mulige overskud.
+- [ ] Spil 2: vurderingerne er kun grønne eller lys blå, aldrig røde.
 - [ ] Bevis-skærmen viser et ur, der ændrer sig mellem to aflæsninger med 1,5 sek mellemrum, og har kørende animation.
 - [ ] Bevis-skærmen kan ikke nås direkte via URL.
 - [ ] "Spil igen" nulstiller alt.
@@ -286,7 +256,7 @@ Kør i mobil-viewport (iPhone 13 og Pixel 7 i Playwright):
 - [ ] Ingen cookies/localStorage/sessionStorage skrives.
 - [ ] Filstørrelse < 300 KB.
 - [ ] Kontrast AA på alle tekst/baggrund-par (kør axe-core i testen).
-- [ ] `balance.js` opfylder B1–B6.
+- [ ] `scenarier.js` opfylder S1–S5.
 - [ ] Ingen forekomst af "vind", "vundet", "PLADSHOLDER" eller tankestreger i synlig UI-tekst.
 
 Tag skærmbilleder af alle skærme i 390×844 og gem dem i `test/screenshots/`, så Jakob kan gennemse dem.

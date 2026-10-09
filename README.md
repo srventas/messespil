@@ -17,7 +17,9 @@ Alt indhold står i `CONFIG` øverst i `<script>` i `index.html`. Logikken neden
   - `aktiv`: sæt til `false` for at slå et kort fra. Fx fordom f7 og f8, til elevcitaterne findes.
   - `tjek`: din egen note. Vises ikke.
 - **Trækning:** `antal` (8), `minVirkelighed` og `maxVirkelighed`. Puljen skal kunne give 8 kort inden for reglerne. Ellers viser spillet en fejl, og testen fanger det.
-- **Slikboden:** `CONFIG.spil2`. Ændrer du tal, så kør balancetesten (se nedenfor).
+- **Slikboden:** `CONFIG.spil2`. Hver runde trækker en tilfældig kundegruppe, et sted fra gruppen, et antal gæster og et vejr.
+  - Nye steder: tilføj dem til en gruppes `steder`. Det ændrer ikke tallene.
+  - Nye grupper eller ændrede faktorer: kør scenarietesten bagefter (se nedenfor). Den sikrer, at det bedste valg stadig kan læses ud af teksten.
 
 Ingen tankestreger (– eller —) og ikke ordene "vind" eller "vundet" i teksterne. Testen fejler, hvis de dukker op.
 
@@ -29,7 +31,7 @@ Kræver Node 18 eller nyere.
 
 ```
 npm install
-node test/balance.js      # balancen i Slikboden (B1 til B6)
+node test/scenarier.js    # scenarierne i Slikboden (S1 til S5)
 npx playwright test       # hele spillet i iPhone 13- og Pixel 7-format
 ```
 

@@ -35,7 +35,7 @@ async function tjekAxe(page) {
 async function skaermbillede(page, testInfo, navn) {
   if (testInfo.project.name !== "iphone-13") return;
   fs.mkdirSync(SKAERMBILLEDER, { recursive: true });
-  await page.screenshot({ path: path.join(SKAERMBILLEDER, `${navn}.png`) });
+  await page.screenshot({ path: path.join(SKAERMBILLEDER, `${navn}.png`), fullPage: true });
 }
 
 // Spiller Spil 1. strategi(kort) returnerer "fordom", "virkelighed" eller "swipe-venstre"/"swipe-hoejre".
@@ -71,26 +71,67 @@ async function spilSpil1(page, strategi, undervejs) {
   return set;
 }
 
-async function spilSpil2(page, undervejs) {
+// Læser scenariet på skærmen og finder det bedste valg med spillets egen model.
+async function analyserScenarie(page) {
+  const tekst = {
+    sted: await page.locator("#s2-sted").innerText(),
+    antal: await page.locator("#s2-antal").innerText(),
+    vejr: await page.locator("#s2-vejr").innerText()
+  };
+  return page.evaluate((t) => {
+    const { CONFIG, vurder } = window.__messespil;
+    const c = CONFIG.spil2;
+    const gruppe = c.kundegrupper.find((g) => g.steder.includes(t.sted));
+    const sc = { gruppe, sted: t.sted, antal: c.antal.find((a) => a.tekst === t.antal), vejr: c.vejr.find((v) => v.tekst === t.vejr) };
+    const r = vurder(c, sc, { pris: c.priser[0], indkoeb: c.indkoeb[0], mf: "intet" });
+    return { gruppe: gruppe.id, sc: { gruppe: gruppe.id, antal: sc.antal.kunder, vejr: sc.vejr.faktor },
+             bedst: { pris: r.bedst.pris, indkoeb: r.bedst.indkoeb, mf: r.bedst.mf }, max: r.max };
+  }, tekst);
+}
+
+async function beregnValg(page, info, valg) {
+  return page.evaluate(({ info, valg }) => {
+    const { CONFIG, vurder } = window.__messespil;
+    const c = CONFIG.spil2;
+    const sc = { gruppe: c.kundegrupper.find((g) => g.id === info.sc.gruppe),
+                 antal: c.antal.find((a) => a.kunder === info.sc.antal), vejr: c.vejr.find((v) => v.faktor === info.sc.vejr) };
+    const r = vurder(c, sc, valg);
+    return { overskud: r.egen.overskud, god: r.god, gode: Object.values(r.god).filter(Boolean).length };
+  }, { info, valg });
+}
+
+async function vaelgIBoden(page, valg) {
+  await page.locator(`label:has(input[name="pris"][value="${valg.pris}"])`).click();
+  await page.locator(`label:has(input[name="indkoeb"][value="${valg.indkoeb}"])`).click();
+  await page.locator(`label:has(input[name="mf"][value="${valg.mf}"])`).click();
+}
+
+// Spiller Slikboden. strategi(info) returnerer valget; standard er det bedste valg.
+async function spilSpil2(page, undervejs, strategi = (info) => info.bedst) {
   await page.getByRole("button", { name: /Slikboden/ }).click();
   if (undervejs) await undervejs("intro");
   await page.locator("#s2-start").click();
-  const nyheder = [];
-  for (let dag = 0; dag < 2; dag++) {
+  const runder = [];
+  for (let runde = 0; runde < 2; runde++) {
     await expect(page.locator("#s2-valg")).toBeVisible();
-    await expect(page.locator("#s2-valg-h")).toHaveText(`Dag ${dag + 1}`);
-    nyheder.push(await page.locator("#s2-nyhed").innerText());
-    if (undervejs) await undervejs(`valg-${dag + 1}`);
+    await expect(page.locator("#s2-valg-h")).toHaveText(`Runde ${runde + 1} af 2`);
+    await expect(page.locator("#s2-aabn")).toBeDisabled();
+    const info = await analyserScenarie(page);
+    const valg = strategi(info);
+    await vaelgIBoden(page, valg);
+    await expect(page.locator("#s2-aabn")).toBeEnabled();
+    runder.push({ info, valg, ...(await beregnValg(page, info, valg)) });
+    if (undervejs) await undervejs(`valg-${runde + 1}`);
     await page.locator("#s2-aabn").click();
     await expect(page.locator("#s2-dag")).toBeVisible();
-    if (undervejs) await undervejs(`dag-${dag + 1}`);
+    if (undervejs) await undervejs(`dag-${runde + 1}`);
     await page.locator("#s2-videre").click();
   }
   await expect(page.locator("#s2-slut")).toBeVisible();
   if (undervejs) await undervejs("slut");
   await page.locator("#s2-bevis").click();
   await expect(page.locator("#bevis")).toBeVisible();
-  return nyheder;
+  return runder;
 }
 
 const rigtigt = (k) => (k.svar === "virkelighed" ? "virkelighed" : "fordom");
@@ -191,35 +232,54 @@ test("Kort med svar 'begge' tæller som rigtigt begge veje", async ({ page }) =>
   }
 });
 
-test("Spil 2: nyhed før valg, forskellige hændelser, overskud på bevis", async ({ page }) => {
+test("Spil 2: bedste valg giver 6 af 6, to forskellige kundegrupper", async ({ page }) => {
   test.setTimeout(120000);
-  for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
+  for (const seed of [1, 2, 3, 4, 5]) {
     await aaben(page, seed);
-    const nyheder = await spilSpil2(page);
-    expect(nyheder[0]).not.toEqual(nyheder[1]);
-    // Standardvalget er 10 kr, 40 poser, skilt: 200 eller 220 kr pr. dag.
-    const tekst = await page.locator("#bevis-resultat").innerText();
-    expect(tekst).toMatch(/^Dit overskud: (400|420|440) kr$/);
+    const runder = await spilSpil2(page);
+    expect(runder[0].info.gruppe).not.toEqual(runder[1].info.gruppe);
+    const total = runder[0].info.max + runder[1].info.max;
+    await expect(page.locator("#bevis-resultat")).toHaveText(`6 af 6 gode valg. Overskud: ${total} kr`);
   }
 });
 
-test("Spil 2: underskud vises neutralt", async ({ page }) => {
-  await aaben(page, 3);
+test("Spil 2: dårlige valg giver færre gode valg og vises neutralt", async ({ page }) => {
+  test.setTimeout(60000);
+  for (const seed of [3, 8]) {
+    await aaben(page, seed);
+    // Modsat det bedste på alle tre parametre.
+    const runder = await spilSpil2(page, null, (info) => ({
+      pris: info.bedst.pris === 20 ? 10 : 20,
+      indkoeb: info.bedst.indkoeb >= 60 ? 20 : 80,
+      mf: info.bedst.mf === "some" ? "intet" : "some"
+    }));
+    const gode = runder[0].gode + runder[1].gode;
+    const total = runder[0].overskud + runder[1].overskud;
+    expect(gode).toBeLessThan(6);
+    const penge = total >= 0 ? `Overskud: ${total} kr` : `Underskud: ${-total} kr`;
+    await expect(page.locator("#bevis-resultat")).toHaveText(`${gode} af 6 gode valg. ${penge}`);
+  }
+});
+
+test("Spil 2: resultatskærmen markerer valg uden rødt", async ({ page }) => {
+  await aaben(page, 4);
   await page.getByRole("button", { name: /Slikboden/ }).click();
   await page.locator("#s2-start").click();
-  for (let dag = 0; dag < 2; dag++) {
-    await page.locator('label:has(input[name="pris"][value="5"])').click();
-    await page.locator('label:has(input[name="indkoeb"][value="20"])').click();
-    await page.locator('label:has(input[name="mf"][value="some"])').click();
-    await expect(page.locator("#s2-budget")).toHaveText("Dagens udgifter: 130 kr");
-    await page.locator("#s2-aabn").click();
-    await expect(page.locator("#s2-dag")).toBeVisible();
-    await expect(page.locator("#s2-indsigt")).toContainText("Lav pris");
-    await page.locator("#s2-videre").click();
+  const info = await analyserScenarie(page);
+  // Find en pris, som ikke er et godt valg i dette scenarie.
+  let valg;
+  for (const pris of [10, 15, 20]) {
+    const forsoeg = { ...info.bedst, pris };
+    if (!(await beregnValg(page, info, forsoeg)).god.pris) { valg = forsoeg; break; }
   }
-  await expect(page.locator("#s2-slut-label")).toHaveText("Dit samlede underskud");
-  await page.locator("#s2-bevis").click();
-  await expect(page.locator("#bevis-resultat")).toHaveText(/^Dit underskud: \d+ kr$/);
+  expect(valg).toBeTruthy();
+  await vaelgIBoden(page, valg);
+  await page.locator("#s2-aabn").click();
+  await expect(page.locator("#s2-dag")).toBeVisible();
+  await expect(page.locator(".vurdering")).toHaveCount(3);
+  const farver = await page.locator(".vurdering").evaluateAll((el) => el.map((e) => getComputedStyle(e).backgroundColor));
+  for (const f of farver) expect(["rgb(121, 222, 168)", "rgb(204, 215, 234)"]).toContain(f);
+  await expect(page.locator(".vurdering.bedre").first()).toContainText("Pris");
 });
 
 test("Bevis-skærmen har levende ur og kørende animation", async ({ page }) => {
@@ -260,8 +320,8 @@ test("Spil igen nulstiller alt", async ({ page }) => {
   await page.locator("#bevis-igen").click();
   await page.getByRole("button", { name: /Slikboden/ }).click();
   await page.locator("#s2-start").click();
-  await expect(page.locator("#s2-valg-h")).toHaveText("Dag 1");
-  await expect(page.locator('input[name="pris"][value="10"]')).toBeChecked();
+  await expect(page.locator("#s2-valg-h")).toHaveText("Runde 1 af 2");
+  await expect(page.locator('#s2-form input:checked')).toHaveCount(0);
 });
 
 test("Offline efter load og ingen lagring", async ({ page, context }) => {
@@ -316,8 +376,8 @@ test("Alle skærme: tekstregler, tilgængelighed og skærmbilleder", async ({ pa
   await tjek("03-spil1-kort");
   await page.goto("/index.html?seed=7");
   await spilSpil2(page, async (trin) => {
-    const navne = { intro: "07-spil2-intro", "valg-1": "08-spil2-valg", "dag-1": "09-spil2-dag",
-                    "valg-2": "10-spil2-valg-dag2", "dag-2": "11-spil2-dag2", slut: "12-spil2-slut" };
+    const navne = { intro: "07-spil2-intro", "valg-1": "08-spil2-runde1-valg", "dag-1": "09-spil2-runde1-resultat",
+                    "valg-2": "10-spil2-runde2-valg", "dag-2": "11-spil2-runde2-resultat", slut: "12-spil2-slut" };
     await tjek(navne[trin]);
   });
   await tjek("13-bevis-spil2");
