@@ -1,0 +1,13 @@
+{
+  "name": "messespil",
+  "private": true,
+  "scripts": {
+    "test:scenarier": "node test/scenarier.js",
+    "test:e2e": "playwright test",
+    "test": "node test/scenarier.js && playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "axe-core": "4.10.2"
+  }
+}
