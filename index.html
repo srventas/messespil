@@ -1,0 +1,804 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#004998">
+<meta name="robots" content="noindex">
+<title>Spil og hent din pose · HHX · EUX</title>
+<style>
+  :root {
+    --blaa: #004998;
+    --navy: #003764;
+    --lysblaa: #CCD7EA;
+    --groen: #79DEA8;
+    --orange: #FF6B00;
+    --hvid: #FFFFFF;
+    --radius: 14px;
+    --fart: 200ms;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--lysblaa);
+    color: var(--navy);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 18px;
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #app {
+    max-width: 480px;
+    min-height: 100vh;
+    min-height: 100dvh;
+    margin: 0 auto;
+    background: var(--hvid);
+    position: relative;
+    overflow-x: hidden;
+  }
+  .skaerm {
+    display: none;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 24px 20px calc(24px + env(safe-area-inset-bottom));
+    flex-direction: column;
+    gap: 16px;
+  }
+  .skaerm.aktiv { display: flex; animation: ind var(--fart) ease-out; }
+  @keyframes ind { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .skaerm.moerk { background: var(--blaa); color: var(--hvid); }
+
+  h1, h2, h3, p { margin: 0; }
+  [tabindex="-1"]:focus { outline: none; }
+  h1 { font-size: 34px; line-height: 1.15; font-weight: 800; color: var(--blaa); }
+  h2 { font-size: 26px; line-height: 1.2; font-weight: 800; color: var(--blaa); }
+  .moerk h1, .moerk h2 { color: var(--hvid); }
+  .afsender { font-size: 18px; font-weight: 700; letter-spacing: 0.04em; color: var(--navy); }
+  .moerk .afsender { color: var(--hvid); }
+  .lead { font-size: 20px; }
+  .lille { font-size: 18px; }
+  .fyld { flex: 1; }
+
+  /* Knapper */
+  .knap {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 56px; width: 100%;
+    padding: 12px 20px;
+    border: 2px solid transparent;
+    border-radius: var(--radius);
+    font: inherit; font-size: 20px; font-weight: 800;
+    cursor: pointer;
+    transition: transform 150ms ease, background-color 150ms ease;
+    touch-action: manipulation;
+  }
+  .knap:active { transform: scale(0.98); }
+  .knap:focus-visible, .valgkort:focus-visible, .segment input:focus-visible + span {
+    outline: 3px solid var(--navy); outline-offset: 3px;
+  }
+  .moerk .knap:focus-visible { outline-color: var(--hvid); }
+  .knap-cta { background: var(--orange); color: var(--navy); }
+  .knap-primaer { background: var(--blaa); color: var(--hvid); }
+  .knap-sekundaer { background: var(--hvid); color: var(--blaa); border-color: var(--blaa); }
+  .moerk .knap-sekundaer { background: transparent; color: var(--hvid); border-color: var(--hvid); }
+  .knaprække { display: flex; gap: 12px; }
+  .knaprække .knap { flex: 1; }
+
+  /* Startskærm */
+  .valgkort {
+    display: block; width: 100%; text-align: left;
+    background: var(--lysblaa); color: var(--navy);
+    border: 0; border-radius: var(--radius);
+    padding: 20px; font: inherit; cursor: pointer;
+    transition: transform 150ms ease;
+  }
+  .valgkort:active { transform: scale(0.98); }
+  .valgkort h2 { margin-bottom: 6px; }
+  .valgkort .tid {
+    display: inline-block; margin-top: 12px; padding: 4px 12px;
+    background: var(--hvid); border-radius: 999px; font-weight: 700;
+  }
+
+  /* Spil 1 */
+  .fremskridt { display: flex; align-items: center; justify-content: space-between; font-weight: 800; }
+  .prikker { display: flex; gap: 6px; }
+  .prik { width: 12px; height: 12px; border-radius: 50%; background: var(--lysblaa); }
+  .prik.faerdig { background: var(--blaa); }
+  .prik.nu { background: var(--hvid); box-shadow: inset 0 0 0 3px var(--blaa); }
+  .bunke { position: relative; min-height: 300px; display: flex; flex: 1; }
+  .kort {
+    position: relative; flex: 1;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--blaa); color: var(--hvid);
+    border-radius: 20px; padding: 32px 24px;
+    font-size: 26px; font-weight: 800; line-height: 1.25; text-align: center;
+    touch-action: pan-y; user-select: none; -webkit-user-select: none;
+    cursor: grab; will-change: transform;
+  }
+  .kort.traekker { cursor: grabbing; }
+  .kort.slip { transition: transform 220ms ease-out; }
+  .maerkat {
+    position: absolute; top: 16px; padding: 4px 12px;
+    border-radius: 10px; font-size: 18px; font-weight: 800;
+    background: var(--hvid); color: var(--navy);
+    opacity: 0; pointer-events: none;
+  }
+  .maerkat.venstre { left: 16px; }
+  .maerkat.hoejre { right: 16px; }
+  .vejledning { text-align: center; font-size: 18px; }
+  .feedback {
+    flex: 1; display: flex; flex-direction: column; gap: 12px;
+    border-radius: 20px; padding: 24px; color: var(--navy);
+  }
+  .feedback.rigtigt { background: var(--groen); }
+  .feedback.neutral { background: var(--lysblaa); }
+  .feedback .udsagn { font-size: 18px; font-style: italic; }
+  .feedback .dom { font-size: 30px; font-weight: 800; }
+  .feedback .forklaring { font-size: 22px; font-weight: 700; }
+
+  /* Slikboden */
+  .nyhed { background: var(--lysblaa); border-radius: var(--radius); padding: 16px; }
+  .nyhed strong { display: block; font-size: 18px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .nyhed span { font-size: 22px; font-weight: 800; }
+  fieldset { border: 0; padding: 0; margin: 0; }
+  legend { font-weight: 800; font-size: 20px; margin-bottom: 8px; padding: 0; }
+  .segmenter { display: flex; gap: 8px; }
+  .segment { flex: 1; position: relative; }
+  .segment input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .segment span {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 64px; padding: 8px 4px; text-align: center;
+    border: 2px solid var(--blaa); border-radius: 12px;
+    background: var(--hvid); color: var(--navy);
+    font-weight: 800; font-size: 18px; line-height: 1.2; cursor: pointer;
+    transition: background-color 150ms ease;
+  }
+  .segment span small { font-size: 18px; font-weight: 600; }
+  .segment input:checked + span { background: var(--blaa); color: var(--hvid); }
+  .budget { font-weight: 700; }
+  .taeller-boks { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+  .taeller { font-size: 72px; font-weight: 800; color: var(--blaa); font-variant-numeric: tabular-nums; }
+  .tal { width: 100%; border-collapse: collapse; font-size: 20px; }
+  .tal td { padding: 10px 0; border-bottom: 2px solid var(--lysblaa); }
+  .tal td:last-child { text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .tal tr.sum td { border-bottom: 0; font-size: 24px; font-weight: 800; }
+  .indsigt { background: var(--groen); border-radius: var(--radius); padding: 16px; font-size: 20px; font-weight: 700; }
+  .stort-tal { font-size: 40px; font-weight: 800; color: var(--blaa); }
+
+  /* Bevis */
+  #bevis { align-items: center; text-align: center; gap: 12px; }
+  .flueben { width: 120px; height: 120px; flex-shrink: 0; animation: puls 1.6s ease-in-out 0.9s infinite; }
+  .flueben circle { fill: var(--groen); }
+  .flueben path {
+    fill: none; stroke: var(--navy); stroke-width: 9; stroke-linecap: round; stroke-linejoin: round;
+    stroke-dasharray: 80; stroke-dashoffset: 80;
+    animation: tegn 600ms ease-out 250ms forwards;
+  }
+  @keyframes tegn { to { stroke-dashoffset: 0; } }
+  @keyframes puls { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+  .resultat { font-size: 22px; font-weight: 700; }
+  .ur-boks { background: var(--hvid); color: var(--navy); border-radius: 16px; padding: 16px 24px; width: 100%; }
+  .ur { font-size: 52px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+  .dato { font-size: 20px; font-weight: 700; }
+  .linje { font-size: 20px; font-weight: 700; }
+
+  .skjult { display: none !important; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skaerm.aktiv { animation: none; }
+    .knap, .valgkort, .segment span { transition: none; }
+    .kort.slip { transition: none; }
+    .flueben path { animation: none; stroke-dashoffset: 0; }
+    .flueben { animation: puls-rolig 4s ease-in-out infinite; }
+    @keyframes puls-rolig { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+  }
+</style>
+</head>
+<body>
+<main id="app">
+
+  <!-- Startskærm -->
+  <section class="skaerm aktiv" id="start" aria-labelledby="start-h">
+    <p class="afsender" data-tekst="produkter"></p>
+    <h1 id="start-h">Spil og hent din pose</h1>
+    <p class="lead">Vælg et spil. Det tager under to minutter.</p>
+    <button class="valgkort" type="button" data-start="spil1">
+      <h2>Fordom eller virkelighed?</h2>
+      <p>8 udsagn. Swipe dem på plads.</p>
+      <span class="tid">ca. 1 min</span>
+    </button>
+    <button class="valgkort" type="button" data-start="spil2">
+      <h2>Slikboden</h2>
+      <p>Driv en slikbod i 2 dage. Hvor meget tjener du?</p>
+      <span class="tid">ca. 2 min</span>
+    </button>
+    <div class="fyld"></div>
+    <p class="lille" data-tekst="skole"></p>
+  </section>
+
+  <!-- Spil 1: intro -->
+  <section class="skaerm" id="s1-intro" aria-labelledby="s1-intro-h">
+    <p class="afsender" data-tekst="produkter"></p>
+    <h1 id="s1-intro-h">Fordom eller virkelighed?</h1>
+    <p class="lead">Er det en fordom eller virkeligheden? Swipe til venstre for fordom, til højre for virkelighed.</p>
+    <p class="lead">Du kan også trykke på knapperne.</p>
+    <div class="fyld"></div>
+    <button class="knap knap-cta" type="button" id="s1-start">Start</button>
+  </section>
+
+  <!-- Spil 1: kort -->
+  <section class="skaerm" id="s1-spil" aria-label="Fordom eller virkelighed">
+    <div class="fremskridt">
+      <span id="s1-taeller" aria-live="polite"></span>
+      <span class="prikker" id="s1-prikker" aria-hidden="true"></span>
+    </div>
+    <div class="bunke" id="s1-bunke">
+      <div class="kort" id="s1-kort" role="group" aria-roledescription="kort">
+        <span class="maerkat venstre" aria-hidden="true">Fordom</span>
+        <span class="maerkat hoejre" aria-hidden="true">Virkelighed</span>
+        <span id="s1-udsagn"></span>
+      </div>
+      <div class="feedback skjult" id="s1-feedback" aria-live="polite">
+        <p class="dom" id="s1-dom"></p>
+        <p class="udsagn" id="s1-fb-udsagn"></p>
+        <p class="forklaring" id="s1-forklaring"></p>
+      </div>
+    </div>
+    <div id="s1-svarknapper">
+      <p class="vejledning">Swipe eller tryk</p>
+      <div class="knaprække" style="margin-top:8px">
+        <button class="knap knap-primaer" type="button" data-svar="fordom">Fordom</button>
+        <button class="knap knap-primaer" type="button" data-svar="virkelighed">Virkelighed</button>
+      </div>
+    </div>
+    <button class="knap knap-primaer skjult" type="button" id="s1-naeste">Næste</button>
+  </section>
+
+  <!-- Spil 2: intro -->
+  <section class="skaerm" id="s2-intro" aria-labelledby="s2-intro-h">
+    <p class="afsender" data-tekst="produkter"></p>
+    <h1 id="s2-intro-h">Slikboden</h1>
+    <p class="lead" id="s2-fortaelling"></p>
+    <div class="fyld"></div>
+    <button class="knap knap-cta" type="button" id="s2-start">Åbn boden</button>
+  </section>
+
+  <!-- Spil 2: valg -->
+  <section class="skaerm" id="s2-valg" aria-labelledby="s2-valg-h">
+    <h1 id="s2-valg-h"></h1>
+    <div class="nyhed"><strong>Dagens nyhed</strong><span id="s2-nyhed"></span></div>
+    <form id="s2-form" onsubmit="return false">
+      <fieldset style="margin-bottom:16px">
+        <legend>Pris pr. pose</legend>
+        <div class="segmenter" id="s2-pris"></div>
+      </fieldset>
+      <fieldset style="margin-bottom:16px">
+        <legend>Indkøb</legend>
+        <div class="segmenter" id="s2-indkoeb"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Markedsføring</legend>
+        <div class="segmenter" id="s2-mf"></div>
+      </fieldset>
+    </form>
+    <p class="budget" id="s2-budget" aria-live="polite"></p>
+    <div class="fyld"></div>
+    <button class="knap knap-cta" type="button" id="s2-aabn">Åbn boden for i dag</button>
+  </section>
+
+  <!-- Spil 2: dagen går -->
+  <section class="skaerm" id="s2-koer" aria-label="Dagen går">
+    <div class="taeller-boks">
+      <p class="lead" id="s2-koer-dag"></p>
+      <p class="taeller" id="s2-taeller">0</p>
+      <p class="lead">poser solgt</p>
+    </div>
+  </section>
+
+  <!-- Spil 2: dagsresultat -->
+  <section class="skaerm" id="s2-dag" aria-labelledby="s2-dag-h">
+    <h1 id="s2-dag-h"></h1>
+    <table class="tal" id="s2-tal"></table>
+    <p class="indsigt" id="s2-indsigt"></p>
+    <div class="fyld"></div>
+    <button class="knap knap-primaer" type="button" id="s2-videre"></button>
+  </section>
+
+  <!-- Spil 2: afslutning -->
+  <section class="skaerm" id="s2-slut" aria-labelledby="s2-slut-h">
+    <h1 id="s2-slut-h">Boden er lukket</h1>
+    <p class="lead" id="s2-slut-label"></p>
+    <p class="stort-tal" id="s2-slut-tal"></p>
+    <table class="tal" id="s2-slut-dage"></table>
+    <p class="indsigt" id="s2-laering"></p>
+    <div class="fyld"></div>
+    <button class="knap knap-cta" type="button" id="s2-bevis">Vis bevis</button>
+  </section>
+
+  <!-- Bevis -->
+  <section class="skaerm moerk" id="bevis" aria-labelledby="bevis-h">
+    <svg class="flueben" viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="46"></circle>
+      <path d="M28 52 L44 67 L73 36"></path>
+    </svg>
+    <h1 id="bevis-h">Gennemført!</h1>
+    <p class="resultat" id="bevis-resultat"></p>
+    <div class="ur-boks">
+      <p class="ur" id="bevis-ur" aria-label="Klokken"></p>
+      <p class="dato" id="bevis-dato"></p>
+    </div>
+    <p class="lead">Vis skærmen ved standen og få din pose.</p>
+    <div class="fyld"></div>
+    <p class="linje" data-tekst="linje"></p>
+    <p class="afsender" data-tekst="produkter"></p>
+    <p class="lille" data-tekst="skole"></p>
+    <button class="knap knap-sekundaer" type="button" id="bevis-igen">Spil igen</button>
+  </section>
+
+</main>
+<script>
+"use strict";
+// ================== CONFIG ==================
+// Alt indhold kan rettes her uden at røre logikken nedenfor.
+const CONFIG = {
+  afsender: {
+    produkter: "HHX · EUX",
+    linje: "Tæt på dig. Tæt på virkeligheden.",
+    skole: "Handelsgymnasiet Vestfyn"
+  },
+
+  spil1: {
+    antal: 8,
+    minVirkelighed: 2,   // kort med svar "virkelighed" eller "begge"
+    maxVirkelighed: 4,
+    kort: [
+      // svar: "fordom" | "virkelighed" | "begge". Kort med samme gruppe kommer aldrig i samme spil.
+      { id: "f1", udsagn: "HHX er den nemme vej til en studenterhue.", svar: "fordom",
+        forklaring: "Samme adgangskrav. Samme hue. Samme adgang til videregående uddannelser.",
+        gruppe: "adgang", aktiv: true, tjek: "TODO-FAKTA: nuværende adgangskrav" },
+      { id: "f2", udsagn: "På HHX skal du være totalt matematisk og nørdet.", svar: "fordom",
+        forklaring: "Du får matematik. Du bruger det på priser, budgetter og regnskaber.",
+        aktiv: true, tjek: "TODO-FAKTA: niveau og indhold i læreplanen" },
+      { id: "f3", udsagn: "Du har kun valgt HHX, fordi du ikke vil have fysik og kemi.", svar: "begge",
+        forklaring: "Og? Det er en god grund.",
+        aktiv: true, tjek: "TODO-FAKTA: at ingen naturvidenskabelige fag er obligatoriske" },
+      { id: "f4", udsagn: "Du skal på CBS, når du er færdig med HHX.", svar: "fordom",
+        forklaring: "Jura, psykologi, lærer, sygeplejerske. HHX giver adgang til mere end økonomi.",
+        aktiv: true, tjek: "TODO-FAKTA: adgangskrav for de nævnte uddannelser" },
+      { id: "f5", udsagn: "For at starte på HHX skal du kunne C25-indekset.", svar: "fordom",
+        forklaring: "Virksomhedsøkonomi og afsætning er nye fag for alle. Alle starter fra nul.",
+        gruppe: "nyt-fag", aktiv: true },
+      { id: "f6", udsagn: "HHX er kun for folk med lyseblå skjorter og designertasker.", svar: "fordom",
+        forklaring: "Hver tredje gymnasieelev med faglærte forældre vælger HHX.",
+        aktiv: true, tjek: "TODO-FAKTA: præcis formulering i AE's analyse" },
+      { id: "f7", udsagn: "Du har kun valgt HHX, fordi du vil tjene mange penge.", svar: "begge",
+        forklaring: "PLADSHOLDER: elevcitat",
+        aktiv: false, tjek: "Aktiveres, når elevcitat findes" },
+      { id: "f8", udsagn: "Elever på HHX har rundsave på albuerne.", svar: "fordom",
+        forklaring: "PLADSHOLDER: elevcitat",
+        aktiv: false, tjek: "Aktiveres, når elevcitat findes" },
+      { id: "f9", udsagn: "EUX er for dem, der ikke kan klare gymnasiet.", svar: "fordom",
+        forklaring: "Du får en gymnasial eksamen og en erhvervsuddannelse. Og adgang til videregående uddannelser.",
+        aktiv: true, tjek: "TODO-FAKTA: formulering om studiekompetence på ug.dk eller i EUX-loven" },
+      { id: "f10", udsagn: "På EUX sidder man bare på skolebænken.", svar: "fordom",
+        forklaring: "Du kommer ud i en virksomhed og får løn.",
+        gruppe: "eux-praktik", aktiv: true, tjek: "TODO-FAKTA: praktik og elevløn i EUX Business" },
+
+      { id: "v1", udsagn: "HHX giver adgang til universitetet.", svar: "virkelighed",
+        forklaring: "HHX er en studentereksamen og giver adgang til videregående uddannelser.",
+        gruppe: "adgang", aktiv: true },
+      { id: "v2", udsagn: "Virksomhedsøkonomi er et nyt fag for alle.", svar: "virkelighed",
+        forklaring: "Faget findes ikke i folkeskolen, så alle starter samme sted.",
+        gruppe: "nyt-fag", aktiv: true },
+      { id: "v3", udsagn: "HHX er en 3-årig gymnasial uddannelse.", svar: "virkelighed",
+        forklaring: "Tre år. Studenterhue. Samme som de andre gymnasier.",
+        aktiv: true },
+      { id: "v4", udsagn: "På EUX er du i praktik i en virksomhed og får løn.", svar: "virkelighed",
+        forklaring: "Du kommer ud i en rigtig virksomhed og får elevløn.",
+        gruppe: "eux-praktik", aktiv: true, tjek: "TODO-FAKTA: praktik og elevløn" },
+      { id: "v5", udsagn: "På HHX har du et andet fremmedsprog, fx spansk eller tysk.", svar: "virkelighed",
+        forklaring: "Sprog er en del af HHX. Handel foregår ikke kun på dansk.",
+        aktiv: true, tjek: "TODO-FAKTA: obligatorisk 2. fremmedsprog og udbudte sprog" },
+      { id: "v6", udsagn: "Du vælger studieretning efter grundforløbet.", svar: "virkelighed",
+        forklaring: "Du behøver ikke vide det hele fra dag ét.",
+        aktiv: true, tjek: "TODO-FAKTA: tidspunkt for studieretningsvalg" }
+    ]
+  },
+
+  spil2: {
+    fortaelling: "Du driver en slikbod på messen i 2 dage. Se dagens nyhed, og vælg pris, indkøb og markedsføring. Hvor meget tjener du?",
+    laering: "Pris, lager og markedsføring. Det er afsætning og virksomhedsøkonomi. Det har du på HHX og EUX.",
+    priser: [5, 10, 15],
+    indkoeb: [20, 40, 60],
+    indkoebspris: 4,
+    grundefterspoergsel: { 5: 55, 10: 40, 15: 25 },
+    markedsfoering: {
+      intet: { navn: "Intet",             pris: 0,  faktor: 1.00 },
+      skilt: { navn: "Håndskrevet skilt", pris: 20, faktor: 1.25 },
+      some:  { navn: "Opslag på SoMe",    pris: 50, faktor: 1.40 }
+    },
+    haendelser: [
+      { tekst: "Solskin. Mange gæster i dag.",                   faktor: { 5: 1.25, 10: 1.25, 15: 1.25 } },
+      { tekst: "Regnvejr. Færre gæster i dag.",                  faktor: { 5: 0.75, 10: 0.75, 15: 0.75 } },
+      { tekst: "Almindelig dag på messen.",                      faktor: { 5: 1.00, 10: 1.00, 15: 1.00 } },
+      { tekst: "En skoleklasse med lommepenge kommer forbi.",    faktor: { 5: 1.40, 10: 1.10, 15: 0.70 } },
+      { tekst: "Konkurrenten ved siden af giver gratis slik.",   faktor: { 5: 1.00, 10: 0.80, 15: 0.60 } },
+      { tekst: "Forældredag. Mange voksne med penge på lommen.", faktor: { 5: 0.90, 10: 1.10, 15: 1.50 } }
+    ]
+  }
+};
+// ================== CONFIG SLUT ==================
+
+// ---------- Tilfældighed (med ?seed=123 til test) ----------
+function lavRng(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const seedParam = new URLSearchParams(location.search).get("seed");
+const rng = seedParam !== null && /^\d+$/.test(seedParam) ? lavRng(Number(seedParam)) : Math.random;
+
+function bland(liste, r) {
+  const a = liste.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(r() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+const erVirk = (k) => k.svar === "virkelighed" || k.svar === "begge";
+
+// ---------- Spil 1: trækning ----------
+// Trækker kort efter reglerne. Usete kort foretrækkes; sete bruges kun til at fylde op.
+function traekKort(cfg, sete, r) {
+  const aktive = cfg.kort.filter((k) => k.aktiv);
+  for (let forsoeg = 0; forsoeg < 50; forsoeg++) {
+    const maalVirk = cfg.minVirkelighed + Math.floor(r() * (cfg.maxVirkelighed - cfg.minVirkelighed + 1));
+    const kvote = { v: maalVirk, f: cfg.antal - maalVirk };
+    const raekkefoelge = bland(aktive.filter((k) => !sete.has(k.id)), r)
+      .concat(bland(aktive.filter((k) => sete.has(k.id)), r));
+    const valgt = [];
+    const grupper = new Set();
+    for (const k of raekkefoelge) {
+      const type = erVirk(k) ? "v" : "f";
+      if (kvote[type] === 0) continue;
+      if (k.gruppe && grupper.has(k.gruppe)) continue;
+      valgt.push(k);
+      kvote[type]--;
+      if (k.gruppe) grupper.add(k.gruppe);
+      if (valgt.length === cfg.antal) return bland(valgt, r);
+    }
+  }
+  throw new Error("Puljen er for lille til trækreglerne. Tjek CONFIG.spil1.");
+}
+
+// ---------- Spil 2: model ----------
+function beregnDag(cfg, valg, haendelse) {
+  const { pris, indkoeb, mf } = valg;
+  const m = cfg.markedsfoering[mf];
+  const f = haendelse.faktor[pris];
+  const efterspoergsel = Math.round(cfg.grundefterspoergsel[pris] * m.faktor * f);
+  const solgt = Math.min(indkoeb, efterspoergsel);
+  const omsaetning = solgt * pris;
+  const udgifter = indkoeb * cfg.indkoebspris + m.pris;
+  const overskud = omsaetning - udgifter;
+  const usolgt = indkoeb - solgt;
+  const forgaeves = efterspoergsel - solgt;
+  const udenMf = Math.round(cfg.grundefterspoergsel[pris] * f);
+  const ekstraKunder = efterspoergsel - udenMf;
+  const ekstraSolgt = solgt - Math.min(indkoeb, udenMf);
+  return { pris, indkoeb, mf, mfPris: m.pris, efterspoergsel, solgt, omsaetning, udgifter, overskud,
+           usolgt, forgaeves, ekstraKunder, ekstraSolgt };
+}
+
+function forklaring(d) {
+  if (d.pris === 5) return `Du solgte ${d.solgt} poser, men tjente kun 1 kr pr. pose. Lav pris kræver kæmpe salg.`;
+  if (d.forgaeves >= 5) return `Du løb tør. ${d.forgaeves} kunder gik forgæves. Køb mere ind næste gang?`;
+  if (d.usolgt >= 10) return `Du købte ${d.usolgt} poser for meget. De blev for gamle.`;
+  if (d.mf !== "intet" && d.ekstraSolgt * d.pris < d.mfPris) return "Markedsføringen kostede mere, end den gav.";
+  if (d.mf !== "intet") return `Markedsføringen gav ${d.ekstraKunder} ekstra kunder for ${d.mfPris} kr.`;
+  if (d.pris === 15) return "Høj pris giver færre kunder. Men mere pr. pose.";
+  return "God balance mellem pris og lager.";
+}
+
+const kr = (n) => `${n} kr`;
+const overskudTekst = (n) => (n >= 0 ? `Overskud: ${kr(n)}` : `Underskud: ${kr(-n)}`);
+
+// ---------- Navigation ----------
+const $ = (id) => document.getElementById(id);
+let bevisLaas = false; // bevis-skærmen kan kun åbnes efter et gennemført spil
+
+function vis(id) {
+  if (id === "bevis" && !bevisLaas) id = "start";
+  document.querySelectorAll(".skaerm").forEach((s) => s.classList.toggle("aktiv", s.id === id));
+  window.scrollTo(0, 0);
+  const h = document.querySelector(`#${id} h1, #${id} h2`);
+  if (h) { h.setAttribute("tabindex", "-1"); h.focus({ preventScroll: true }); }
+}
+
+document.querySelectorAll("[data-tekst]").forEach((el) => {
+  el.textContent = CONFIG.afsender[el.dataset.tekst];
+});
+
+const reduceretBevaegelse = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// ---------- Spil 1 ----------
+const sete = new Set(); // kun i hukommelsen, forsvinder ved genindlæsning
+const s1 = { kort: [], i: 0, rigtige: 0, besvaret: false };
+
+function s1Start() {
+  s1.kort = traekKort(CONFIG.spil1, sete, rng);
+  s1.i = 0;
+  s1.rigtige = 0;
+  vis("s1-spil");
+  s1VisKort();
+}
+
+function s1VisKort() {
+  const k = s1.kort[s1.i];
+  s1.besvaret = false;
+  $("s1-taeller").textContent = `${s1.i + 1}/${s1.kort.length}`;
+  $("s1-prikker").innerHTML = s1.kort
+    .map((_, j) => `<span class="prik ${j < s1.i ? "faerdig" : j === s1.i ? "nu" : ""}"></span>`).join("");
+  $("s1-udsagn").textContent = k.udsagn;
+  const kort = $("s1-kort");
+  kort.classList.remove("slip", "skjult");
+  kort.style.transform = "";
+  kort.querySelectorAll(".maerkat").forEach((m) => (m.style.opacity = 0));
+  kort.setAttribute("aria-label", k.udsagn);
+  $("s1-feedback").classList.add("skjult");
+  $("s1-svarknapper").classList.remove("skjult");
+  $("s1-naeste").classList.add("skjult");
+}
+
+function s1Svar(svar) {
+  if (s1.besvaret) return;
+  s1.besvaret = true;
+  const k = s1.kort[s1.i];
+  sete.add(k.id);
+  const rigtigt = k.svar === "begge" || k.svar === svar;
+  if (rigtigt) s1.rigtige++;
+
+  const kort = $("s1-kort");
+  const ud = svar === "fordom" ? -1 : 1;
+  if (!reduceretBevaegelse()) {
+    kort.classList.add("slip");
+    kort.style.transform = `translateX(${ud * 140}%) rotate(${ud * 18}deg)`;
+  }
+  setTimeout(() => {
+    kort.classList.add("skjult");
+    const fb = $("s1-feedback");
+    fb.className = `feedback ${rigtigt ? "rigtigt" : "neutral"}`;
+    if (k.svar === "begge") {
+      $("s1-dom").textContent = "";
+      $("s1-dom").classList.add("skjult");
+    } else {
+      $("s1-dom").classList.remove("skjult");
+      const hvad = k.svar === "fordom" ? "Det er en fordom." : "Det er virkelighed.";
+      $("s1-dom").textContent = `${rigtigt ? "Rigtigt." : "Ikke helt."} ${hvad}`;
+    }
+    $("s1-fb-udsagn").textContent = k.udsagn;
+    $("s1-forklaring").textContent = k.forklaring;
+    $("s1-svarknapper").classList.add("skjult");
+    const n = $("s1-naeste");
+    n.textContent = s1.i === s1.kort.length - 1 ? "Se resultat" : "Næste";
+    n.classList.remove("skjult");
+    n.focus({ preventScroll: true });
+  }, reduceretBevaegelse() ? 0 : 220);
+}
+
+function s1Naeste() {
+  if (s1.i < s1.kort.length - 1) {
+    s1.i++;
+    s1VisKort();
+  } else {
+    visBevis(`Du ramte ${s1.rigtige} ud af ${s1.kort.length}`);
+  }
+}
+
+// Swipe
+(function () {
+  const kort = $("s1-kort");
+  let start = null, dx = 0;
+  const maerkatV = kort.querySelector(".maerkat.venstre");
+  const maerkatH = kort.querySelector(".maerkat.hoejre");
+  kort.addEventListener("pointerdown", (e) => {
+    if (s1.besvaret) return;
+    start = { x: e.clientX, y: e.clientY };
+    dx = 0;
+    kort.setPointerCapture(e.pointerId);
+    kort.classList.remove("slip");
+    kort.classList.add("traekker");
+  });
+  kort.addEventListener("pointermove", (e) => {
+    if (!start) return;
+    dx = e.clientX - start.x;
+    kort.style.transform = `translateX(${dx}px) rotate(${dx / 20}deg)`;
+    const andel = Math.min(1, Math.abs(dx) / (kort.offsetWidth * 0.35));
+    maerkatV.style.opacity = dx < 0 ? andel : 0;
+    maerkatH.style.opacity = dx > 0 ? andel : 0;
+  });
+  function slip() {
+    if (!start) return;
+    start = null;
+    kort.classList.remove("traekker");
+    if (Math.abs(dx) > kort.offsetWidth * 0.35) {
+      s1Svar(dx < 0 ? "fordom" : "virkelighed");
+    } else {
+      kort.classList.add("slip");
+      kort.style.transform = "";
+      maerkatV.style.opacity = 0;
+      maerkatH.style.opacity = 0;
+    }
+  }
+  kort.addEventListener("pointerup", slip);
+  kort.addEventListener("pointercancel", slip);
+})();
+
+// ---------- Spil 2 ----------
+const s2 = { dag: 0, haendelser: [], dage: [] };
+
+function lavSegmenter(id, navn, valg, standard) {
+  $(id).innerHTML = valg.map((v) =>
+    `<label class="segment"><input type="radio" name="${navn}" value="${v.vaerdi}"${v.vaerdi === standard ? " checked" : ""}>` +
+    `<span>${v.tekst}${v.under ? `<small>${v.under}</small>` : ""}</span></label>`).join("");
+}
+
+function s2Opsaet() {
+  const c = CONFIG.spil2;
+  lavSegmenter("s2-pris", "pris", c.priser.map((p) => ({ vaerdi: String(p), tekst: kr(p) })), String(c.priser[1]));
+  lavSegmenter("s2-indkoeb", "indkoeb",
+    c.indkoeb.map((n) => ({ vaerdi: String(n), tekst: `${n} poser`, under: kr(n * c.indkoebspris) })),
+    String(c.indkoeb[1]));
+  const mfNavne = Object.keys(c.markedsfoering);
+  lavSegmenter("s2-mf", "mf",
+    mfNavne.map((k) => ({ vaerdi: k, tekst: c.markedsfoering[k].navn, under: kr(c.markedsfoering[k].pris) })),
+    mfNavne[1]);
+  s2OpdaterBudget();
+}
+
+function s2Valg() {
+  const f = new FormData($("s2-form"));
+  return { pris: Number(f.get("pris")), indkoeb: Number(f.get("indkoeb")), mf: f.get("mf") };
+}
+
+function s2OpdaterBudget() {
+  const c = CONFIG.spil2;
+  const v = s2Valg();
+  $("s2-budget").textContent = `Dagens udgifter: ${kr(v.indkoeb * c.indkoebspris + c.markedsfoering[v.mf].pris)}`;
+}
+
+function s2Start() {
+  const n = CONFIG.spil2.haendelser.length;
+  const a = Math.floor(rng() * n);
+  let b = Math.floor(rng() * (n - 1));
+  if (b >= a) b++;
+  s2.haendelser = [CONFIG.spil2.haendelser[a], CONFIG.spil2.haendelser[b]];
+  s2.dag = 0;
+  s2.dage = [];
+  s2VisValg();
+}
+
+function s2VisValg() {
+  s2Opsaet();
+  $("s2-valg-h").textContent = `Dag ${s2.dag + 1}`;
+  $("s2-nyhed").textContent = s2.haendelser[s2.dag].tekst;
+  vis("s2-valg");
+}
+
+function s2Aabn() {
+  const d = beregnDag(CONFIG.spil2, s2Valg(), s2.haendelser[s2.dag]);
+  s2.dage.push(d);
+  $("s2-koer-dag").textContent = `Dag ${s2.dag + 1}. Boden er åben.`;
+  vis("s2-koer");
+  const t = $("s2-taeller");
+  if (reduceretBevaegelse()) {
+    t.textContent = d.solgt;
+    setTimeout(() => s2VisDag(d), 400);
+    return;
+  }
+  const varighed = 1200;
+  const t0 = performance.now();
+  (function trin(nu) {
+    const p = Math.min(1, (nu - t0) / varighed);
+    t.textContent = Math.round(d.solgt * p);
+    if (p < 1) requestAnimationFrame(trin);
+    else setTimeout(() => s2VisDag(d), 250);
+  })(t0);
+}
+
+function raekker(par) {
+  return par.map(([a, b, kl]) => `<tr${kl ? ` class="${kl}"` : ""}><td>${a}</td><td>${b}</td></tr>`).join("");
+}
+
+function s2VisDag(d) {
+  $("s2-dag-h").textContent = `Dag ${s2.dag + 1}. Resultat`;
+  $("s2-tal").innerHTML = raekker([
+    ["Kunder der ville købe", d.efterspoergsel],
+    ["Solgte poser", `${d.solgt} af ${d.indkoeb}`],
+    ["Omsætning", kr(d.omsaetning)],
+    ["Udgifter", kr(d.udgifter)],
+    [d.overskud >= 0 ? "Overskud" : "Underskud", kr(Math.abs(d.overskud)), "sum"]
+  ]);
+  $("s2-indsigt").textContent = forklaring(d);
+  $("s2-videre").textContent = s2.dag === 0 ? "Næste dag" : "Se resultat";
+  vis("s2-dag");
+}
+
+function s2Videre() {
+  if (s2.dag === 0) {
+    s2.dag = 1;
+    s2VisValg();
+    return;
+  }
+  const total = s2.dage.reduce((s, d) => s + d.overskud, 0);
+  $("s2-slut-label").textContent = total >= 0 ? "Dit samlede overskud" : "Dit samlede underskud";
+  $("s2-slut-tal").textContent = kr(Math.abs(total));
+  $("s2-slut-dage").innerHTML = raekker(s2.dage.map((d, i) => [`Dag ${i + 1}`, overskudTekst(d.overskud)]));
+  $("s2-laering").textContent = CONFIG.spil2.laering;
+  s2.total = total;
+  vis("s2-slut");
+}
+
+// ---------- Bevis ----------
+const ugedage = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"];
+const maaneder = ["januar", "februar", "marts", "april", "maj", "juni", "juli", "august",
+                  "september", "oktober", "november", "december"];
+const to = (n) => String(n).padStart(2, "0");
+let urTimer = null;
+
+function opdaterUr() {
+  const n = new Date();
+  $("bevis-ur").textContent = `${to(n.getHours())}:${to(n.getMinutes())}:${to(n.getSeconds())}`;
+  $("bevis-dato").textContent = `${ugedage[n.getDay()]} ${n.getDate()}. ${maaneder[n.getMonth()]}`;
+}
+
+function visBevis(resultat) {
+  bevisLaas = true;
+  $("bevis-resultat").textContent = resultat;
+  // genstart animationen
+  const svg = document.querySelector(".flueben");
+  const kopi = svg.cloneNode(true);
+  svg.replaceWith(kopi);
+  opdaterUr();
+  clearInterval(urTimer);
+  urTimer = setInterval(opdaterUr, 1000);
+  vis("bevis");
+}
+
+function nulstil() {
+  bevisLaas = false;
+  clearInterval(urTimer);
+  s1.kort = []; s1.i = 0; s1.rigtige = 0; s1.besvaret = false;
+  s2.dag = 0; s2.haendelser = []; s2.dage = []; s2.total = 0;
+  vis("start");
+}
+
+// ---------- Hændelser ----------
+$("s2-fortaelling").textContent = CONFIG.spil2.fortaelling;
+document.querySelectorAll("[data-start]").forEach((b) =>
+  b.addEventListener("click", () => vis(b.dataset.start === "spil1" ? "s1-intro" : "s2-intro")));
+$("s1-start").addEventListener("click", s1Start);
+document.querySelectorAll("[data-svar]").forEach((b) => b.addEventListener("click", () => s1Svar(b.dataset.svar)));
+$("s1-naeste").addEventListener("click", s1Naeste);
+$("s2-start").addEventListener("click", s2Start);
+$("s2-form").addEventListener("change", s2OpdaterBudget);
+$("s2-aabn").addEventListener("click", s2Aabn);
+$("s2-videre").addEventListener("click", s2Videre);
+$("s2-bevis").addEventListener("click", () => visBevis(
+  s2.total >= 0 ? `Dit overskud: ${kr(s2.total)}` : `Dit underskud: ${kr(-s2.total)}`));
+$("bevis-igen").addEventListener("click", nulstil);
+
+// Testkrog: kun trækfunktionen og CONFIG eksponeres, ikke navigationen.
+window.__messespil = Object.freeze({ CONFIG, traekKort, lavRng });
+
+vis("start");
+</script>
+</body>
+</html>

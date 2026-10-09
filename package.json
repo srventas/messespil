@@ -1,0 +1,13 @@
+{
+  "name": "messespil",
+  "private": true,
+  "scripts": {
+    "test:balance": "node test/balance.js",
+    "test:e2e": "playwright test",
+    "test": "node test/balance.js && playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "axe-core": "4.10.2"
+  }
+}
