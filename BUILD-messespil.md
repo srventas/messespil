@@ -128,7 +128,7 @@ Feltformat: `{ id, udsagn, svar: "fordom" | "sandhed" | "begge", forklaring, gru
 | f2 | På HHX skal du være matematisk og nørdet. | fordom | Du får matematik, ja. Du får bare det, der kan bruges i virkeligheden. | p2 | TODO-FAKTA: læreplan |
 | f3 | Du har kun valgt HHX, fordi du ikke vil have fysik og kemi. | begge | Ja. Og? | p3 | TODO-FAKTA: ingen obligatoriske naturfag |
 | f4 | Du skal læse økonomi eller være revisor, når du er færdig med HHX. | fordom | Jura, psykologi, lærer, sygeplejerske. HHX giver adgang til mere end økonomi. | p4 | TODO-FAKTA: adgangskrav |
-| f5 | De nye fag er svære og man skal vide en masse om virksomheder. | fordom | Virksomhedsøkonomi og afsætning er nye fag for alle. Alle starter fra nul. | p5 | |
+| f5 | De nye fag er svære, og man skal vide en masse om virksomheder. | fordom | Virksomhedsøkonomi og afsætning er nye fag for alle. Alle starter fra nul. | p5 | |
 | f6 | HHX er kun for folk med lyseblå skjorter, dyre sko og designertasker. | fordom | Der er flere hvide sokker i Birkenstocks end der er jakkesæt. | p6 | |
 | f7 | EUX er for dem, der ikke kan klare gymnasiet. | fordom | Du skal kunne bestå gymnasiet på kun 2 år og får adgang til videregående uddannelse oveni. | p7 | TODO-FAKTA: EUX Business |
 | f8 | Du har kun valgt HHX, fordi du vil tjene mange penge. | begge | Det er jo ikke dårligt at have ambitioner. | p8 | |
