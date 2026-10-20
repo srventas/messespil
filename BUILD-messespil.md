@@ -13,7 +13,7 @@ Denne fil er en komplet specifikation til Claude Code. Byg præcis det, der stå
 - Spil 1 trækker 8 tilfældige kort fra en pulje i stedet for 8 faste kort.
 - Slikbodens model er ombygget, så ingen opskrift vinder hver gang. Dagens hændelse vises nu før valget.
 - Kravet om intet skolenavn er droppet.
-- Dagskoden er erstattet af et levende ur på bevis-skærmen, så intet skal ændres eller deployes på messedagen.
+- Dagskoden er erstattet af et tidsstempel på bevis-skærmen, så intet skal ændres eller deployes på messedagen.
 - "Spil 3" hedder nu "Spil 2".
 
 ---
@@ -38,7 +38,7 @@ Denne fil er en komplet specifikation til Claude Code. Byg præcis det, der stå
 | K6 | Mobile-first: designet til 360–430 px bredde, portræt. Skal også se ordentligt ud på desktop (centreret kolonne, max-bredde 480 px). |
 | K7 | Al UI-tekst på **dansk**. Ingen tankestreger (–/—) i UI-tekst; brug punktum eller komma. |
 | K8 | Al spilindhold (kort, tekster, modelparametre, skolenavn) ligger i **ét `CONFIG`-objekt øverst i `<script>`**, så det kan rettes uden at røre logikken. |
-| K9 | Tilgængelighed: alt kan betjenes med knapper (swipe er en genvej, ikke eneste vej), tekst min. 18 px, kontrast mindst WCAG AA, `prefers-reduced-motion` respekteres (animationer dæmpes, men bevis-animationen må stadig pulsere langsomt, og uret skal stadig gå). |
+| K9 | Tilgængelighed: alt kan betjenes med knapper (swipe er en genvej, ikke eneste vej), tekst min. 18 px, kontrast mindst WCAG AA, `prefers-reduced-motion` respekteres (animationer dæmpes, men bevis-animationen må stadig pulsere langsomt). |
 | K10 | **Ingen daglig vedligeholdelse.** Intet i filen må kræve ændring før en messedag. |
 
 ## 3. Design
@@ -82,11 +82,11 @@ Denne fil er en komplet specifikation til Claude Code. Byg præcis det, der stå
 
 ### 4.2 Bevis-skærm (fælles afslutning)
 - Baggrund `#004998`, hvid tekst.
+- **Øverst og størst** (30 px fed): "Gå til standen, og vis skærmen. Så får du din pose."
 - Stort animeret flueben (SVG, tegnes ind og pulserer derefter langsomt i en uendelig løkke).
 - Overskrift: "Gennemført!"
 - Resultatlinje fra spillet (fx "Du ramte 6 ud af 8" eller "5 af 6 gode valg. Overskud: 820 kr").
-- **Levende ur** i stor tekst i en hvid boks med navy tekst: klokkeslæt med sekunder (`14:32:07`), opdateret hvert sekund, og under det dagens dato (`torsdag 9. oktober`). Brug enhedens tid. Et skærmbillede viser et ur, der står stille eller viser forkert tid. Standpersonalet skal ikke kende nogen kode.
-- Instruktion: "Vis skærmen ved standen og få din pose."
+- **Tidsstempel** i en hvid boks med navy tekst: "Gennemført kl. 14:32, tirsdag 20. oktober". Sættes én gang, når spillet gennemføres, og står derefter stille (et tikkende ur forvirrede). Skriftstørrelsen er mindre end instruksen. Standpersonalet tjekker, at tidspunktet er fra i dag og inden for de sidste 15 minutter, og at fluebenet pulserer.
 - Nederst: `CONFIG.afsender.linje`, "HHX | EUX" og `CONFIG.afsender.skole`.
 - Knap (sekundær, diskret): "Spil igen" → startskærm.
 - Bevis-skærmen må ikke kunne nås via URL-hash, query-parameter eller direkte link; kun ved at gennemføre et spil.
@@ -254,7 +254,7 @@ Kør i mobil-viewport (iPhone 13 og Pixel 7 i Playwright):
 - [ ] Spil 2: de to runder har forskellige kundegrupper.
 - [ ] Spil 2: det bedste valg i begge runder giver 6 af 6 og det bedst mulige overskud.
 - [ ] Spil 2: vurderingerne er kun grønne eller lys blå, aldrig røde.
-- [ ] Bevis-skærmen viser et ur, der ændrer sig mellem to aflæsninger med 1,5 sek mellemrum, og har kørende animation.
+- [ ] Bevis-skærmen viser instruksen øverst og i større skrift end tidsstemplet. Tidsstemplet står stille, og fluebenet har kørende animation.
 - [ ] Bevis-skærmen kan ikke nås direkte via URL.
 - [ ] "Spil igen" nulstiller alt.
 - [ ] Ingen netværkskald efter load (tjek i Playwright: blokér netværk efter load og gennemfør begge spil).
@@ -276,8 +276,8 @@ Tag skærmbilleder af alle skærme i 390×844 og gem dem i `test/screenshots/`, 
 **Afvikling på dagen (intet skal ændres)**
 - Hav en iPad ved standen med spillet indlæst som plan B.
 - Læg `STANDGUIDE.md` printet på standen. Indhold:
-  1. "Gyldigt bevis: blå skærm, grønt flueben der pulserer, og et ur der går. Klokken passer med din egen."
-  2. "Står uret stille, eller er klokken forkert, er det et skærmbillede. Bed dem spille spillet. Det tager to minutter."
+  1. "Gyldigt bevis: blå skærm, grønt flueben der pulserer, og et tidsstempel fra i dag inden for de sidste 15 minutter."
+  2. "Står fluebenet stille, eller er tidspunktet gammelt, er det et skærmbillede. Bed dem spille spillet. Det tager to minutter."
   3. "Én pose pr. person."
   4. "Virker QR-koden ikke? Lad dem spille på iPad'en."
   5. "Er poserne væk, må de gerne spille alligevel."

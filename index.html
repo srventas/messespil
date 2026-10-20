@@ -186,9 +186,9 @@
   @keyframes tegn { to { stroke-dashoffset: 0; } }
   @keyframes puls { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
   .resultat { font-size: 22px; font-weight: 700; }
-  .ur-boks { background: var(--hvid); color: var(--navy); border-radius: 16px; padding: 16px 24px; width: 100%; }
-  .ur { font-size: 52px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
-  .dato { font-size: 20px; font-weight: 700; }
+  .instruks { font-size: 30px; line-height: 1.2; font-weight: 800; }
+  .tid-boks { background: var(--hvid); color: var(--navy); border-radius: 16px; padding: 12px 20px; width: 100%; }
+  .tidspunkt { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
   .linje { font-size: 20px; font-weight: 700; }
 
   .skjult { display: none !important; }
@@ -335,17 +335,16 @@
 
   <!-- Bevis -->
   <section class="skaerm moerk" id="bevis" aria-labelledby="bevis-h">
+    <p class="instruks" id="bevis-instruks">Gå til standen, og vis skærmen. Så får du din pose.</p>
     <svg class="flueben" viewBox="0 0 100 100" aria-hidden="true">
       <circle cx="50" cy="50" r="46"></circle>
       <path d="M28 52 L44 67 L73 36"></path>
     </svg>
     <h1 id="bevis-h">Gennemført!</h1>
     <p class="resultat" id="bevis-resultat"></p>
-    <div class="ur-boks">
-      <p class="ur" id="bevis-ur" aria-label="Klokken"></p>
-      <p class="dato" id="bevis-dato"></p>
+    <div class="tid-boks">
+      <p class="tidspunkt" id="bevis-tid"></p>
     </div>
-    <p class="lead">Vis skærmen ved standen og få din pose.</p>
     <div class="fyld"></div>
     <p class="linje" data-tekst="linje"></p>
     <p class="afsender" data-tekst="produkter"></p>
@@ -974,12 +973,9 @@ const ugedage = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", 
 const maaneder = ["januar", "februar", "marts", "april", "maj", "juni", "juli", "august",
                   "september", "oktober", "november", "december"];
 const to = (n) => String(n).padStart(2, "0");
-let urTimer = null;
-
-function opdaterUr() {
-  const n = new Date();
-  $("bevis-ur").textContent = `${to(n.getHours())}:${to(n.getMinutes())}:${to(n.getSeconds())}`;
-  $("bevis-dato").textContent = `${ugedage[n.getDay()]} ${n.getDate()}. ${maaneder[n.getMonth()]}`;
+// Tidsstemplet sættes én gang, når spillet er gennemført, og står derefter stille.
+function tidsstempel(n) {
+  return `Gennemført kl. ${to(n.getHours())}:${to(n.getMinutes())}, ${ugedage[n.getDay()]} ${n.getDate()}. ${maaneder[n.getMonth()]}`;
 }
 
 function visBevis(resultat) {
@@ -989,15 +985,12 @@ function visBevis(resultat) {
   const svg = document.querySelector(".flueben");
   const kopi = svg.cloneNode(true);
   svg.replaceWith(kopi);
-  opdaterUr();
-  clearInterval(urTimer);
-  urTimer = setInterval(opdaterUr, 1000);
+  $("bevis-tid").textContent = tidsstempel(new Date());
   vis("bevis");
 }
 
 function nulstil() {
   bevisLaas = false;
-  clearInterval(urTimer);
   s1.kort = []; s1.i = 0; s1.rigtige = 0; s1.besvaret = false;
   s2.runde = 0; s2.scenarier = []; s2.runder = []; s2.total = 0; s2.gode = 0;
   vis("start");

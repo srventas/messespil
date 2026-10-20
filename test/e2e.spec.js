@@ -287,16 +287,23 @@ test("Spil 2: resultatskærmen markerer valg uden rødt", async ({ page }) => {
   await expect(page.locator(".vurdering.bedre").first()).toContainText("Pris");
 });
 
-test("Bevis-skærmen har levende ur og kørende animation", async ({ page }) => {
+test("Bevis-skærmen: instruks øverst og størst, fast tidsstempel og kørende animation", async ({ page }) => {
+  await page.clock.install({ time: new Date(2026, 9, 20, 14, 32, 10) });
   await aaben(page, 21);
   await spilSpil1(page, rigtigt);
-  const ur = page.locator("#bevis-ur");
-  await expect(ur).toHaveText(/^\d\d:\d\d:\d\d$/);
-  const t1 = await ur.innerText();
-  await page.waitForTimeout(1500);
-  const t2 = await ur.innerText();
-  expect(t2).not.toEqual(t1);
-  await expect(page.locator("#bevis-dato")).toHaveText(/^(mandag|tirsdag|onsdag|torsdag|fredag|lørdag|søndag) \d{1,2}\. [a-z]+$/);
+  const tid = page.locator("#bevis-tid");
+  await expect(tid).toHaveText("Gennemført kl. 14:32, tirsdag 20. oktober");
+  // Tidsstemplet må ikke tikke.
+  await page.clock.runFor(120000);
+  await expect(tid).toHaveText("Gennemført kl. 14:32, tirsdag 20. oktober");
+  // Instruksen står øverst og er større end tidsstemplet.
+  const instruks = page.locator("#bevis-instruks");
+  await expect(instruks).toHaveText("Gå til standen, og vis skærmen. Så får du din pose.");
+  const [iBoks, tBoks, hBoks] = await Promise.all([instruks.boundingBox(), tid.boundingBox(), page.locator("#bevis-h").boundingBox()]);
+  expect(iBoks.y).toBeLessThan(hBoks.y);
+  expect(iBoks.y).toBeLessThan(tBoks.y);
+  const stoerrelse = (l) => l.evaluate((e) => parseFloat(getComputedStyle(e).fontSize));
+  expect(await stoerrelse(instruks)).toBeGreaterThan(await stoerrelse(tid));
   const animation = await page.evaluate(() =>
     document.querySelector(".flueben").getAnimations().map((a) => ({
       tilstand: a.playState, gentagelser: a.effect.getTiming().iterations

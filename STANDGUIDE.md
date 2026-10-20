@@ -4,9 +4,9 @@
 
 - Blå skærm med teksten "Gennemført!"
 - Et grønt flueben, der pulserer.
-- Et ur, hvor sekunderne tæller. Klokken passer med din egen.
+- Et tidsstempel: "Gennemført kl. 14:32, tirsdag 20. oktober". Det skal være i dag og inden for de sidste 15 minutter.
 
-**Står uret stille, eller er klokken forkert?**
+**Står fluebenet stille, eller er tidspunktet gammelt?**
 Så er det et skærmbillede. Bed dem spille spillet. Det tager to minutter.
 
 **Regler**
