@@ -287,21 +287,27 @@ test("Spil 2: resultatskærmen markerer valg uden rødt", async ({ page }) => {
   await expect(page.locator(".vurdering.bedre").first()).toContainText("Pris");
 });
 
-test("Bevis-skærmen: instruks øverst og størst, fast tidsstempel og kørende animation", async ({ page }) => {
+test("Bevis-skærmen: instruks midt på i hvid boks og størst, fast tidsstempel og kørende animation", async ({ page }) => {
   await page.clock.install({ time: new Date(2026, 9, 20, 14, 32, 10) });
   await aaben(page, 21);
   await spilSpil1(page, rigtigt);
   const tid = page.locator("#bevis-tid");
-  await expect(tid).toHaveText("Gennemført kl. 14:32, tirsdag 20. oktober");
+  await expect(tid).toHaveText("Gennemført kl. 14:32, tirsdag 20.\u00a0oktober");
   // Tidsstemplet må ikke tikke.
   await page.clock.runFor(120000);
-  await expect(tid).toHaveText("Gennemført kl. 14:32, tirsdag 20. oktober");
-  // Instruksen står øverst og er større end tidsstemplet.
+  await expect(tid).toHaveText("Gennemført kl. 14:32, tirsdag 20.\u00a0oktober");
+  // Instruksen står midt på skærmen i en hvid boks, under "Gennemført!" og over tidsstemplet, og er større end det.
+  await page.setViewportSize({ width: 390, height: 844 });
   const instruks = page.locator("#bevis-instruks");
   await expect(instruks).toHaveText("Gå til standen, og vis skærmen. Så får du din pose.");
   const [iBoks, tBoks, hBoks] = await Promise.all([instruks.boundingBox(), tid.boundingBox(), page.locator("#bevis-h").boundingBox()]);
-  expect(iBoks.y).toBeLessThan(hBoks.y);
+  expect(iBoks.y).toBeGreaterThan(hBoks.y);
   expect(iBoks.y).toBeLessThan(tBoks.y);
+  const midte = iBoks.y + iBoks.height / 2;
+  expect(midte).toBeGreaterThan(844 * 0.35);
+  expect(midte).toBeLessThan(844 * 0.65);
+  const baggrund = await page.locator(".instruks-boks").evaluate((e) => getComputedStyle(e).backgroundColor);
+  expect(baggrund).toBe("rgb(255, 255, 255)");
   const stoerrelse = (l) => l.evaluate((e) => parseFloat(getComputedStyle(e).fontSize));
   expect(await stoerrelse(instruks)).toBeGreaterThan(await stoerrelse(tid));
   const animation = await page.evaluate(() =>

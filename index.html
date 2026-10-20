@@ -186,8 +186,8 @@
   @keyframes tegn { to { stroke-dashoffset: 0; } }
   @keyframes puls { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
   .resultat { font-size: 22px; font-weight: 700; }
+  .instruks-boks { background: var(--hvid); color: var(--navy); border-radius: 16px; padding: 20px; width: 100%; }
   .instruks { font-size: 30px; line-height: 1.2; font-weight: 800; }
-  .tid-boks { background: var(--hvid); color: var(--navy); border-radius: 16px; padding: 12px 20px; width: 100%; }
   .tidspunkt { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
   .linje { font-size: 20px; font-weight: 700; }
 
@@ -335,16 +335,17 @@
 
   <!-- Bevis -->
   <section class="skaerm moerk" id="bevis" aria-labelledby="bevis-h">
-    <p class="instruks" id="bevis-instruks">Gå til standen, og vis skærmen. Så får du din pose.</p>
     <svg class="flueben" viewBox="0 0 100 100" aria-hidden="true">
       <circle cx="50" cy="50" r="46"></circle>
       <path d="M28 52 L44 67 L73 36"></path>
     </svg>
     <h1 id="bevis-h">Gennemført!</h1>
     <p class="resultat" id="bevis-resultat"></p>
-    <div class="tid-boks">
-      <p class="tidspunkt" id="bevis-tid"></p>
+    <div class="fyld"></div>
+    <div class="instruks-boks">
+      <p class="instruks" id="bevis-instruks">Gå til standen, og vis skærmen. Så får du din pose.</p>
     </div>
+    <p class="tidspunkt" id="bevis-tid"></p>
     <div class="fyld"></div>
     <p class="linje" data-tekst="linje"></p>
     <p class="afsender" data-tekst="produkter"></p>
@@ -361,7 +362,7 @@ const CONFIG = {
   afsender: {
     produkter: "HHX | EUX",
     linje: "Virkelighedsnært. Virksomhedsnært.",
-    skole: "Handelsgymnasiet Vestfyn"
+    skole: "Det Blå Gymnasium Vestfyn"
   },
 
   spil1: {
@@ -975,7 +976,7 @@ const maaneder = ["januar", "februar", "marts", "april", "maj", "juni", "juli", 
 const to = (n) => String(n).padStart(2, "0");
 // Tidsstemplet sættes én gang, når spillet er gennemført, og står derefter stille.
 function tidsstempel(n) {
-  return `Gennemført kl. ${to(n.getHours())}:${to(n.getMinutes())}, ${ugedage[n.getDay()]} ${n.getDate()}. ${maaneder[n.getMonth()]}`;
+  return `Gennemført kl. ${to(n.getHours())}:${to(n.getMinutes())}, ${ugedage[n.getDay()]} ${n.getDate()}.\u00a0${maaneder[n.getMonth()]}`; // hårdt mellemrum: dato og måned knækker ikke
 }
 
 function visBevis(resultat) {

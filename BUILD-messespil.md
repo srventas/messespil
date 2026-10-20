@@ -82,11 +82,11 @@ Denne fil er en komplet specifikation til Claude Code. Byg præcis det, der stå
 
 ### 4.2 Bevis-skærm (fælles afslutning)
 - Baggrund `#004998`, hvid tekst.
-- **Øverst og størst** (30 px fed): "Gå til standen, og vis skærmen. Så får du din pose."
+- **Midt på skærmen og størst** (30 px fed, navy tekst i hvid boks): "Gå til standen, og vis skærmen. Så får du din pose." Over den: flueben, "Gennemført!" og resultatlinjen.
 - Stort animeret flueben (SVG, tegnes ind og pulserer derefter langsomt i en uendelig løkke).
 - Overskrift: "Gennemført!"
 - Resultatlinje fra spillet (fx "Du ramte 6 ud af 8" eller "5 af 6 gode valg. Overskud: 820 kr").
-- **Tidsstempel** i en hvid boks med navy tekst: "Gennemført kl. 14:32, tirsdag 20. oktober". Sættes én gang, når spillet gennemføres, og står derefter stille (et tikkende ur forvirrede). Skriftstørrelsen er mindre end instruksen. Standpersonalet tjekker, at tidspunktet er fra i dag og inden for de sidste 15 minutter, og at fluebenet pulserer.
+- **Tidsstempel** under instruksen, hvid tekst direkte på blå baggrund: "Gennemført kl. 14:32, tirsdag 20. oktober". Sættes én gang, når spillet gennemføres, og står derefter stille (et tikkende ur forvirrede). Skriftstørrelsen er mindre end instruksen. Standpersonalet tjekker, at tidspunktet er fra i dag og inden for de sidste 15 minutter, og at fluebenet pulserer.
 - Nederst: `CONFIG.afsender.linje`, "HHX | EUX" og `CONFIG.afsender.skole`.
 - Knap (sekundær, diskret): "Spil igen" → startskærm.
 - Bevis-skærmen må ikke kunne nås via URL-hash, query-parameter eller direkte link; kun ved at gennemføre et spil.
@@ -220,7 +220,7 @@ const CONFIG = {
   afsender: {
     produkter: "HHX | EUX",
     linje: "Virkelighedsnært. Virksomhedsnært.",
-    skole: "Handelsgymnasiet Vestfyn"
+    skole: "Det Blå Gymnasium Vestfyn"
   },
   spil1: { antal: 8, minSandhed: 2, maxSandhed: 4, kort: [ /* se tabeller i afsnit 5 */ ] },
   spil2: { /* se model i afsnit 6 */ }
@@ -254,7 +254,7 @@ Kør i mobil-viewport (iPhone 13 og Pixel 7 i Playwright):
 - [ ] Spil 2: de to runder har forskellige kundegrupper.
 - [ ] Spil 2: det bedste valg i begge runder giver 6 af 6 og det bedst mulige overskud.
 - [ ] Spil 2: vurderingerne er kun grønne eller lys blå, aldrig røde.
-- [ ] Bevis-skærmen viser instruksen øverst og i større skrift end tidsstemplet. Tidsstemplet står stille, og fluebenet har kørende animation.
+- [ ] Bevis-skærmen viser instruksen midt på skærmen i en hvid boks og i større skrift end tidsstemplet. Tidsstemplet står stille, og fluebenet har kørende animation.
 - [ ] Bevis-skærmen kan ikke nås direkte via URL.
 - [ ] "Spil igen" nulstiller alt.
 - [ ] Ingen netværkskald efter load (tjek i Playwright: blokér netværk efter load og gennemfør begge spil).
