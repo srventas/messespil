@@ -9,14 +9,14 @@ Specifikation: [BUILD-messespil.md](BUILD-messespil.md). Til standpersonalet: [S
 Alt indhold står i `CONFIG` øverst i `<script>` i `index.html`. Logikken nedenfor skal ikke røres.
 
 - **Skolenavn og linjer:** `CONFIG.afsender`.
-- **Kort i Fordom eller virkelighed:** `CONFIG.spil1.kort`. Hvert kort har:
+- **Kort i Fordom eller sandhed:** `CONFIG.spil1.kort`. Hvert kort har:
   - `udsagn`: teksten på kortet.
-  - `svar`: `"fordom"`, `"virkelighed"` eller `"begge"` (tæller som rigtigt uanset svar).
+  - `svar`: `"fordom"`, `"sandhed"` eller `"begge"` (tæller som rigtigt uanset svar).
   - `forklaring`: vises efter svar.
   - `gruppe` (valgfri): kort med samme gruppe kommer aldrig i samme spil. Brug det, når to kort siger det samme.
   - `aktiv`: sæt til `false` for at slå et kort fra. Fx fordom f7 og f8, til elevcitaterne findes.
   - `tjek`: din egen note. Vises ikke.
-- **Trækning:** `antal` (8), `minVirkelighed` og `maxVirkelighed`. Puljen skal kunne give 8 kort inden for reglerne. Ellers viser spillet en fejl, og testen fanger det.
+- **Trækning:** `antal` (8), `minSandhed` og `maxSandhed`. Puljen skal kunne give 8 kort inden for reglerne. Ellers viser spillet en fejl, og testen fanger det.
 - **Slikboden:** `CONFIG.spil2`. Hver runde trækker en tilfældig kundegruppe, et sted fra gruppen, et antal gæster og et vejr.
   - Nye steder: tilføj dem til en gruppes `steder`. Det ændrer ikke tallene.
   - Nye grupper eller ændrede faktorer: kør scenarietesten bagefter (se nedenfor). Den sikrer, at det bedste valg stadig kan læses ud af teksten.

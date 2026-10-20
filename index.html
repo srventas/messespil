@@ -77,7 +77,7 @@
     outline: 3px solid var(--navy); outline-offset: 3px;
   }
   .moerk .knap:focus-visible { outline-color: var(--hvid); }
-  .knap-cta { background: var(--orange); color: #000000; }
+  .knap-cta { background: var(--orange); color: var(--hvid); } /* bevidst valg: hvid på orange, kontrast 2,85:1 */
   .knap:disabled { background: var(--lysblaa); color: var(--navy); cursor: not-allowed; }
   .knap:disabled:active { transform: none; }
   .knap-primaer { background: var(--blaa); color: var(--hvid); }
@@ -136,6 +136,7 @@
   .feedback.neutral { background: var(--lysblaa); }
   .feedback .udsagn { font-size: 18px; font-style: italic; }
   .feedback .dom { font-size: 30px; font-weight: 800; }
+  .feedback .etiket { font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 4px; }
   .feedback .forklaring { font-size: 22px; font-weight: 700; }
 
   /* Slikboden */
@@ -212,7 +213,7 @@
     <h1 id="start-h">Spil og hent din pose</h1>
     <p class="lead">Vælg et spil. Det tager under to minutter.</p>
     <button class="valgkort" type="button" data-start="spil1">
-      <h2>Fordom eller virkelighed?</h2>
+      <h2>Fordom eller sandhed?</h2>
       <p>8 udsagn. Swipe dem på plads.</p>
       <span class="tid">ca. 1 min</span>
     </button>
@@ -228,15 +229,15 @@
   <!-- Spil 1: intro -->
   <section class="skaerm" id="s1-intro" aria-labelledby="s1-intro-h">
     <p class="afsender" data-tekst="produkter"></p>
-    <h1 id="s1-intro-h">Fordom eller virkelighed?</h1>
-    <p class="lead">Er det en fordom eller virkeligheden? Swipe til venstre for fordom, til højre for virkelighed.</p>
+    <h1 id="s1-intro-h">Fordom eller sandhed?</h1>
+    <p class="lead">Er det en fordom eller en sandhed? Swipe til venstre for fordom, til højre for sandhed.</p>
     <p class="lead">Du kan også trykke på knapperne.</p>
     <div class="fyld"></div>
     <button class="knap knap-cta" type="button" id="s1-start">Start</button>
   </section>
 
   <!-- Spil 1: kort -->
-  <section class="skaerm" id="s1-spil" aria-label="Fordom eller virkelighed">
+  <section class="skaerm" id="s1-spil" aria-label="Fordom eller sandhed">
     <div class="fremskridt">
       <span id="s1-taeller" aria-live="polite"></span>
       <span class="prikker" id="s1-prikker" aria-hidden="true"></span>
@@ -244,12 +245,13 @@
     <div class="bunke" id="s1-bunke">
       <div class="kort" id="s1-kort" role="group" aria-roledescription="kort">
         <span class="maerkat venstre" aria-hidden="true">Fordom</span>
-        <span class="maerkat hoejre" aria-hidden="true">Virkelighed</span>
+        <span class="maerkat hoejre" aria-hidden="true">Sandhed</span>
         <span id="s1-udsagn"></span>
       </div>
       <div class="feedback skjult" id="s1-feedback" aria-live="polite">
         <p class="dom" id="s1-dom"></p>
         <p class="udsagn" id="s1-fb-udsagn"></p>
+        <p class="etiket" id="s1-etiket">Sandheden</p>
         <p class="forklaring" id="s1-forklaring"></p>
       </div>
     </div>
@@ -257,7 +259,7 @@
       <p class="vejledning">Swipe eller tryk</p>
       <div class="knaprække" style="margin-top:8px">
         <button class="knap knap-primaer" type="button" data-svar="fordom">Fordom</button>
-        <button class="knap knap-primaer" type="button" data-svar="virkelighed">Virkelighed</button>
+        <button class="knap knap-primaer" type="button" data-svar="sandhed">Sandhed</button>
       </div>
     </div>
     <button class="knap knap-primaer skjult" type="button" id="s1-naeste">Næste</button>
@@ -365,59 +367,57 @@ const CONFIG = {
 
   spil1: {
     antal: 8,
-    minVirkelighed: 2,   // kort med svar "virkelighed" eller "begge"
-    maxVirkelighed: 4,
+    minSandhed: 2,   // kort med svar "sandhed" eller "begge"
+    maxSandhed: 4,
+    // Kilde: fordomme_samlet.pdf (fordomskort med fordom på forsiden og sandhed på bagsiden).
+    // svar: "fordom" | "sandhed" | "begge". Kort med samme gruppe kommer aldrig i samme spil.
+    // Hver fordom og sandheden, der svarer på den, deler gruppe, så svaret ikke afsløres.
     kort: [
-      // svar: "fordom" | "virkelighed" | "begge". Kort med samme gruppe kommer aldrig i samme spil.
       { id: "f1", udsagn: "HHX er den nemme vej til en studenterhue.", svar: "fordom",
-        forklaring: "Samme adgangskrav. Samme hue. Samme adgang til videregående uddannelser.",
-        gruppe: "adgang", aktiv: true, tjek: "TODO-FAKTA: gældende adgangskrav (forslag om krav på 6 fra dec. 2024, status ukendt)" },
-      { id: "f2", udsagn: "På HHX skal du være totalt matematisk og nørdet.", svar: "fordom",
-        forklaring: "Du får matematik. Du bruger det på priser, budgetter og regnskaber.",
-        aktiv: true, tjek: "TODO-FAKTA: niveau og indhold i læreplanen" },
+        forklaring: "HHX har samme adgangskrav. Samme mængde timer. Samme antal eksaminer.",
+        gruppe: "p1", aktiv: true, tjek: "TODO-FAKTA: adgangskrav, timetal og antal eksaminer sammenlignet med de andre gymnasier" },
+      { id: "f2", udsagn: "På HHX skal du være matematisk og nørdet.", svar: "fordom",
+        forklaring: "Du får matematik, ja. Du får bare det, der kan bruges i virkeligheden.",
+        gruppe: "p2", aktiv: true, tjek: "TODO-FAKTA: niveau og indhold i læreplanen" },
       { id: "f3", udsagn: "Du har kun valgt HHX, fordi du ikke vil have fysik og kemi.", svar: "begge",
         forklaring: "Ja. Og?",
-        aktiv: true, tjek: "TODO-FAKTA: at ingen naturvidenskabelige fag er obligatoriske" },
+        gruppe: "p3", aktiv: true, tjek: "TODO-FAKTA: at ingen naturvidenskabelige fag er obligatoriske" },
       { id: "f4", udsagn: "Du skal læse økonomi eller være revisor, når du er færdig med HHX.", svar: "fordom",
         forklaring: "Jura, psykologi, lærer, sygeplejerske. HHX giver adgang til mere end økonomi.",
-        aktiv: true, tjek: "TODO-FAKTA: adgangskrav for de nævnte uddannelser" },
-      { id: "f5", udsagn: "De nye fag er svære, og man skal vide en masse om virksomheder.", svar: "fordom",
+        gruppe: "p4", aktiv: true, tjek: "TODO-FAKTA: adgangskrav for de nævnte uddannelser" },
+      { id: "f5", udsagn: "De nye fag er svære og man skal vide en masse om virksomheder.", svar: "fordom",
         forklaring: "Virksomhedsøkonomi og afsætning er nye fag for alle. Alle starter fra nul.",
-        gruppe: "nyt-fag", aktiv: true },
+        gruppe: "p5", aktiv: true },
       { id: "f6", udsagn: "HHX er kun for folk med lyseblå skjorter, dyre sko og designertasker.", svar: "fordom",
-        forklaring: "Hver tredje gymnasieelev med faglærte forældre vælger HHX.",
-        aktiv: true, tjek: "TODO-FAKTA: Altinget/AE siger 'hver tredje elev med faglærte forældre vælger hhx'. Udkastets 'hver tredje HHX-elev har faglærte forældre' svarer ikke til kilden. Find tallet i AE-analysen." },
-      { id: "f7", udsagn: "Du har kun valgt HHX, fordi du vil tjene mange penge.", svar: "begge",
-        forklaring: "PLADSHOLDER: elevcitat",
-        aktiv: false, tjek: "Aktiveres, når elevcitat findes" },
-      { id: "f8", udsagn: "Elever på HHX har rundsave på albuerne.", svar: "fordom",
-        forklaring: "PLADSHOLDER: elevcitat",
-        aktiv: false, tjek: "Aktiveres, når elevcitat findes" },
-      { id: "f9", udsagn: "EUX er for dem, der ikke kan klare gymnasiet.", svar: "fordom",
-        forklaring: "Du får en gymnasial eksamen og en erhvervsuddannelse. Og adgang til videregående uddannelser.",
-        aktiv: true, tjek: "TODO-FAKTA: formulering om studiekompetence på ug.dk eller i EUX-loven" },
-      { id: "f10", udsagn: "På EUX sidder man bare på skolebænken.", svar: "fordom",
-        forklaring: "Du kommer ud i en virksomhed og får løn.",
-        gruppe: "eux-praktik", aktiv: true, tjek: "TODO-FAKTA: praktik og elevløn i EUX Business" },
+        forklaring: "Der er flere hvide sokker i Birkenstocks end der er jakkesæt.",
+        gruppe: "p6", aktiv: true },
+      { id: "f7", udsagn: "EUX er for dem, der ikke kan klare gymnasiet.", svar: "fordom",
+        forklaring: "Du skal kunne bestå gymnasiet på kun 2 år og får adgang til videregående uddannelse oveni.",
+        gruppe: "p7", aktiv: true, tjek: "TODO-FAKTA: varighed af den gymnasiale del og studiekompetence på EUX Business" },
+      { id: "f8", udsagn: "Du har kun valgt HHX, fordi du vil tjene mange penge.", svar: "begge",
+        forklaring: "Det er jo ikke dårligt at have ambitioner.",
+        gruppe: "p8", aktiv: true },
+      { id: "f9", udsagn: "Elever på HHX er snobbede.", svar: "fordom",
+        forklaring: "Der er forskel på at klæde sig snobbet og være en snob. Vi er ikke snobber på hhx.",
+        gruppe: "p9", aktiv: true },
 
-      { id: "v1", udsagn: "HHX giver adgang til universitetet.", svar: "virkelighed",
-        forklaring: "HHX er en studentereksamen og giver adgang til videregående uddannelser.",
-        gruppe: "adgang", aktiv: true },
-      { id: "v2", udsagn: "Virksomhedsøkonomi er et nyt fag for alle.", svar: "virkelighed",
-        forklaring: "Faget findes ikke i folkeskolen, så alle starter samme sted.",
-        gruppe: "nyt-fag", aktiv: true },
-      { id: "v3", udsagn: "HHX er en 3-årig gymnasial uddannelse.", svar: "virkelighed",
-        forklaring: "Tre år. Studenterhue. Samme som de andre gymnasier.",
-        aktiv: true },
-      { id: "v4", udsagn: "På EUX er du i praktik i en virksomhed og får løn.", svar: "virkelighed",
-        forklaring: "Du kommer ud i en rigtig virksomhed og får elevløn.",
-        gruppe: "eux-praktik", aktiv: true, tjek: "TODO-FAKTA: praktik og elevløn" },
-      { id: "v5", udsagn: "På HHX har du et andet fremmedsprog, fx spansk eller tysk.", svar: "virkelighed",
-        forklaring: "Sprog er en del af HHX. Handel foregår ikke kun på dansk.",
-        aktiv: true, tjek: "TODO-FAKTA: obligatorisk 2. fremmedsprog og udbudte sprog" },
-      { id: "v6", udsagn: "Du vælger studieretning efter grundforløbet.", svar: "virkelighed",
-        forklaring: "Du behøver ikke vide det hele fra dag ét.",
-        aktiv: true, tjek: "TODO-FAKTA: tidspunkt for studieretningsvalg" }
+      // Sandheder fra bagsiden af kortene, brugt som selvstændige udsagn. Kun dem, der giver mening
+      // uden fordommen foran. Små tilføjelser (fx "På EUX") er markeret i tjek.
+      { id: "s1", udsagn: "HHX har samme adgangskrav. Samme mængde timer. Samme antal eksaminer.", svar: "sandhed",
+        forklaring: "Det er svaret på fordommen: HHX er den nemme vej til en studenterhue.",
+        gruppe: "p1", aktiv: true, tjek: "TODO-FAKTA: som f1" },
+      { id: "s2", udsagn: "På HHX får du matematik, der kan bruges i virkeligheden.", svar: "sandhed",
+        forklaring: "Det er svaret på fordommen: På HHX skal du være matematisk og nørdet.",
+        gruppe: "p2", aktiv: true, tjek: "Omskrevet fra kortet: Du får matematik, ja. Du får bare det, der kan bruges i virkeligheden." },
+      { id: "s4", udsagn: "Jura, psykologi, lærer, sygeplejerske. HHX giver adgang til mere end økonomi.", svar: "sandhed",
+        forklaring: "Det er svaret på fordommen: Du skal læse økonomi eller være revisor, når du er færdig med HHX.",
+        gruppe: "p4", aktiv: true, tjek: "TODO-FAKTA: som f4" },
+      { id: "s5", udsagn: "Virksomhedsøkonomi og afsætning er nye fag for alle. Alle starter fra nul.", svar: "sandhed",
+        forklaring: "Det er svaret på fordommen: De nye fag er svære og man skal vide en masse om virksomheder.",
+        gruppe: "p5", aktiv: true },
+      { id: "s7", udsagn: "På EUX skal du kunne bestå gymnasiet på kun 2 år og får adgang til videregående uddannelse oveni.", svar: "sandhed",
+        forklaring: "Det er svaret på fordommen: EUX er for dem, der ikke kan klare gymnasiet.",
+        gruppe: "p7", aktiv: true, tjek: "TODO-FAKTA: som f7. 'På EUX' er tilføjet" }
     ]
   },
 
@@ -503,28 +503,34 @@ function bland(liste, r) {
   }
   return a;
 }
-const erVirk = (k) => k.svar === "virkelighed" || k.svar === "begge";
+const erSandhed = (k) => k.svar === "sandhed" || k.svar === "begge";
 
 // ---------- Spil 1: trækning ----------
 // Trækker kort efter reglerne. Usete kort foretrækkes; sete bruges kun til at fylde op.
+// Søgningen går tilbage, når et valg låser resten fast, så den altid finder en lovlig trækning, hvis den findes.
 function traekKort(cfg, sete, r) {
   const aktive = cfg.kort.filter((k) => k.aktiv);
-  for (let forsoeg = 0; forsoeg < 50; forsoeg++) {
-    const maalVirk = cfg.minVirkelighed + Math.floor(r() * (cfg.maxVirkelighed - cfg.minVirkelighed + 1));
-    const kvote = { v: maalVirk, f: cfg.antal - maalVirk };
+  const maal = [];
+  for (let n = cfg.minSandhed; n <= cfg.maxSandhed; n++) maal.push(n);
+  for (const maalSandhed of bland(maal, r)) {
     const raekkefoelge = bland(aktive.filter((k) => !sete.has(k.id)), r)
       .concat(bland(aktive.filter((k) => sete.has(k.id)), r));
+    const kvote = { s: maalSandhed, f: cfg.antal - maalSandhed };
     const valgt = [];
     const grupper = new Set();
-    for (const k of raekkefoelge) {
-      const type = erVirk(k) ? "v" : "f";
-      if (kvote[type] === 0) continue;
-      if (k.gruppe && grupper.has(k.gruppe)) continue;
-      valgt.push(k);
-      kvote[type]--;
-      if (k.gruppe) grupper.add(k.gruppe);
-      if (valgt.length === cfg.antal) return bland(valgt, r);
-    }
+    const soeg = (i) => {
+      if (valgt.length === cfg.antal) return true;
+      if (raekkefoelge.length - i < cfg.antal - valgt.length) return false;
+      const k = raekkefoelge[i];
+      const type = erSandhed(k) ? "s" : "f";
+      if (kvote[type] > 0 && !(k.gruppe && grupper.has(k.gruppe))) {
+        valgt.push(k); kvote[type]--; if (k.gruppe) grupper.add(k.gruppe);
+        if (soeg(i + 1)) return true;
+        valgt.pop(); kvote[type]++; if (k.gruppe) grupper.delete(k.gruppe);
+      }
+      return soeg(i + 1);
+    };
+    if (soeg(0)) return bland(valgt, r);
   }
   throw new Error("Puljen er for lille til trækreglerne. Tjek CONFIG.spil1.");
 }
@@ -652,11 +658,12 @@ function s1Svar(svar) {
       $("s1-dom").classList.add("skjult");
     } else {
       $("s1-dom").classList.remove("skjult");
-      const hvad = k.svar === "fordom" ? "Det er en fordom." : "Det er virkelighed.";
+      const hvad = k.svar === "fordom" ? "Det er en fordom." : "Det er en sandhed.";
       $("s1-dom").textContent = `${rigtigt ? "Rigtigt." : "Ikke helt."} ${hvad}`;
     }
     $("s1-fb-udsagn").textContent = k.udsagn;
     $("s1-forklaring").textContent = k.forklaring;
+    $("s1-etiket").classList.toggle("skjult", k.svar === "sandhed"); // på fordomskort er forklaringen kortets bagside
     $("s1-svarknapper").classList.add("skjult");
     const n = $("s1-naeste");
     n.textContent = s1.i === s1.kort.length - 1 ? "Se resultat" : "Næste";
@@ -701,7 +708,7 @@ function s1Naeste() {
     start = null;
     kort.classList.remove("traekker");
     if (Math.abs(dx) > kort.offsetWidth * 0.35) {
-      s1Svar(dx < 0 ? "fordom" : "virkelighed");
+      s1Svar(dx < 0 ? "fordom" : "sandhed");
     } else {
       kort.classList.add("slip");
       kort.style.transform = "";

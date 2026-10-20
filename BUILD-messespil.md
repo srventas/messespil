@@ -6,7 +6,8 @@ Denne fil er en komplet specifikation til Claude Code. Byg præcis det, der stå
 - Fordomme opdateret efter "Fordomme HHX/EUX uddannelsesmesse", udkast v3 (8. oktober 2026). Separator mellem HHX og EUX er pipe: "HHX | EUX".
 - Slikboden er bygget om: hver runde er et tilfældigt scenarie, og det bedste valg følger af scenariet. Boden er tegnet, og tegningen følger valgene.
 - Linjen "Tæt på dig. Tæt på virkeligheden." er erstattet af "Virkelighedsnært. Virksomhedsnært." (muleposernes sprog).
-- Orange bruges kun med sort eller hvid tekst. Navy på orange er forbudt.
+- Orange bruges kun med hvid tekst (bevidst valg, se afsnit 3).
+- "Virkelighed" er omdøbt til "sandhed" i Spil 1. Kortene kommer fra fordomme_samlet.pdf.
 
 Ændringer i version 2 i forhold til version 1:
 - Spil 1 trækker 8 tilfældige kort fra en pulje i stedet for 8 faste kort.
@@ -51,13 +52,12 @@ Denne fil er en komplet specifikation til Claude Code. Byg præcis det, der stå
 | Lys blå (lys baggrund, kort) | `#CCD7EA` |
 | Grøn (positiv feedback, highlight) | `#79DEA8` |
 | Orange (**kun** primær CTA-knap, fx "Start" og "Vis bevis") | `#FF6B00` |
-| Sort (kun tekst på orange) | `#000000` |
 | Hvid | `#FFFFFF` |
 
 **Læsbarhedsregler:**
 - Hvid tekst **kun** på `#004998` eller `#003764`.
 - På grøn, lys blå og hvid baggrund: navy tekst.
-- Orange bruges aldrig som fladebaggrund, kun på CTA-knapper, og kun med sort eller hvid tekst. Hvid på orange har kontrast 2,85:1 og består ikke AA, så brug **sort** (7,4:1). Navy eller blå på orange er forbudt.
+- Orange bruges aldrig som fladebaggrund, kun på CTA-knapper, og **kun med hvid tekst**. Det er et bevidst designvalg: hvid på orange har kontrast 2,85:1 og består ikke WCAG AA (kræver 3:1 for stor tekst). Axe-testen undtager derfor kun CTA-knapperne fra kontrastreglen. Alle andre par skal bestå AA.
 - Forkert svar markeres **ikke** med rødt eller kryds. Brug neutral navy/lys blå.
 
 **Typografi:** Systemfont-stack (`system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`). Fed, stor, rund og venlig. Brandfonten Nudista må ikke indlejres (licens uafklaret).
@@ -67,7 +67,7 @@ Denne fil er en komplet specifikation til Claude Code. Byg præcis det, der stå
 ## 4. Skærmflow
 
 ```
-[Startskærm] ─┬─> [Spil 1: Fordom eller virkelighed?] ─┐
+[Startskærm] ─┬─> [Spil 1: Fordom eller sandhed?]    ─┐
               └─> [Spil 2: Slikboden] ─────────────────┴─> [Bevis-skærm]
 ```
 
@@ -76,7 +76,7 @@ Denne fil er en komplet specifikation til Claude Code. Byg præcis det, der stå
 - Overskrift: "Spil og hent din pose"
 - Undertekst: "Vælg et spil. Det tager under to minutter."
 - To store valgkort (kan trykkes):
-  - **Fordom eller virkelighed?**: "8 udsagn. Swipe dem på plads." ca. 1 min
+  - **Fordom eller sandhed?**: "8 udsagn. Swipe dem på plads." ca. 1 min
   - **Slikboden**: "Læs situationen, og sæt boden op. Træf de gode valg." ca. 2 min
 - Nederst, lille: `CONFIG.afsender.skole`.
 
@@ -91,14 +91,14 @@ Denne fil er en komplet specifikation til Claude Code. Byg præcis det, der stå
 - Knap (sekundær, diskret): "Spil igen" → startskærm.
 - Bevis-skærmen må ikke kunne nås via URL-hash, query-parameter eller direkte link; kun ved at gennemføre et spil.
 
-## 5. Spil 1: "Fordom eller virkelighed?"
+## 5. Spil 1: "Fordom eller sandhed?"
 
 ### Mekanik
-1. Kort intro (én skærm): "Er det en fordom eller virkeligheden? Swipe til venstre for fordom, til højre for virkelighed." Knap: "Start".
+1. Kort intro (én skærm): "Er det en fordom eller en sandhed? Swipe til venstre for fordom, til højre for sandhed." Knap: "Start".
 2. Spillet trækker **8 kort** fra puljen `CONFIG.spil1.kort` efter trækreglerne nedenfor og viser ét ad gangen. Fremskridt vises som "3/8" eller prikker.
 3. Spilleren svarer ved:
-   - at swipe kortet til venstre (Fordom) eller højre (Virkelighed). Kortet følger fingeren og roterer let; svar registreres ved > 35 % af bredden, ellers snapper det tilbage,
-   - eller at trykke på knapperne **"Fordom"** (venstre) og **"Virkelighed"** (højre) under kortet.
+   - at swipe kortet til venstre (Fordom) eller højre (Sandhed). Kortet følger fingeren og roterer let; svar registreres ved > 35 % af bredden, ellers snapper det tilbage,
+   - eller at trykke på knapperne **"Fordom"** (venstre) og **"Sandhed"** (højre) under kortet.
 4. Efter svar vises feedback, indtil spilleren trykker "Næste" (ingen automatisk videre; teksterne er for lange til 2,5 sek):
    - Rigtigt: grøn markering + "Rigtigt." + kortets `forklaring`.
    - Forkert: neutral lys blå markering + "Ikke helt." + kortets `forklaring`. **Ingen rød farve, intet kryds.**
@@ -108,7 +108,7 @@ Denne fil er en komplet specifikation til Claude Code. Byg præcis det, der stå
 ### Trækregler
 - Kun kort med `aktiv: true` kan trækkes.
 - Højst ét kort pr. `gruppe` (kort med samme gruppe siger det samme og må ikke komme i samme spil).
-- Blandt de 8: mindst 2 og højst 4 kort med `svar` "virkelighed" eller "begge". Resten "fordom". Så kan spilleren ikke gætte sig til et mønster.
+- Blandt de 8: mindst 2 og højst 4 kort med `svar` "sandhed" eller "begge". Resten "fordom". Så kan spilleren ikke gætte sig til et mønster.
 - Rækkefølgen er tilfældig.
 - "Spil igen" i samme besøg foretrækker kort, spilleren ikke har set endnu (husk dem kun i hukommelsen, aldrig i storage, jf. K4). Når der ikke er nok usete, fyldes op med sete.
 - Samme seed-mulighed som Spil 2 (`?seed=123`) styrer også trækningen.
@@ -116,35 +116,39 @@ Denne fil er en komplet specifikation til Claude Code. Byg præcis det, der stå
 
 ### Indhold (læg i `CONFIG.spil1.kort`)
 
-Feltformat: `{ id, udsagn, svar: "fordom" | "virkelighed" | "begge", forklaring, gruppe?, aktiv, tjek? }`
+Kilde: `fordomme_samlet.pdf` (9 fordomskort med fordom på forsiden og sandhed på bagsiden). Teksterne er gengivet ordret fra kortene.
 
-**Fordomme**
+Feltformat: `{ id, udsagn, svar: "fordom" | "sandhed" | "begge", forklaring, gruppe, aktiv, tjek? }`
 
-| id | Udsagn | Svar | Forklaring | Gruppe | Aktiv | Tjek |
-|---|---|---|---|---|---|---|
-| f1 | HHX er den nemme vej til en studenterhue. | fordom | Samme adgangskrav. Samme hue. Samme adgang til videregående uddannelser. | adgang | ja | TODO-FAKTA: nuværende adgangskrav |
-| f2 | På HHX skal du være totalt matematisk og nørdet. | fordom | Du får matematik. Du bruger det på priser, budgetter og regnskaber. | | ja | TODO-FAKTA: niveau og indhold i læreplanen |
-| f3 | Du har kun valgt HHX, fordi du ikke vil have fysik og kemi. | begge | Ja. Og? | | ja | TODO-FAKTA: at ingen naturvidenskabelige fag er obligatoriske |
-| f4 | Du skal læse økonomi eller være revisor, når du er færdig med HHX. | fordom | Jura, psykologi, lærer, sygeplejerske. HHX giver adgang til mere end økonomi. | | ja | TODO-FAKTA: adgangskrav for de nævnte uddannelser |
-| f5 | De nye fag er svære, og man skal vide en masse om virksomheder. | fordom | Virksomhedsøkonomi og afsætning er nye fag for alle. Alle starter fra nul. | nyt-fag | ja | |
-| f6 | HHX er kun for folk med lyseblå skjorter, dyre sko og designertasker. | fordom | Hver tredje gymnasieelev med faglærte forældre vælger HHX. | | ja | TODO-FAKTA: formuleringen følger Altinget/AE (andel af faglærtes børn). Udkastets "hver tredje HHX-elev har faglærte forældre" svarer ikke til kilden |
-| f7 | Du har kun valgt HHX, fordi du vil tjene mange penge. | begge | PLADSHOLDER: elevcitat | | **nej** | Aktiveres, når elevcitat findes |
-| f8 | Elever på HHX har rundsave på albuerne. | fordom | PLADSHOLDER: elevcitat | | **nej** | Aktiveres, når elevcitat findes |
-| f9 | EUX er for dem, der ikke kan klare gymnasiet. | fordom | Du får en gymnasial eksamen og en erhvervsuddannelse. Og adgang til videregående uddannelser. | | ja | TODO-FAKTA: formulering om studiekompetence på ug.dk eller i EUX-loven |
-| f10 | På EUX sidder man bare på skolebænken. | fordom | Du kommer ud i en virksomhed og får løn. | eux-praktik | ja | TODO-FAKTA: praktik og elevløn i EUX Business |
+**Fordomme** (forklaring = kortets bagside, vises under etiketten "Sandheden")
 
-**Virkelighed** (nødvendige, ellers er svaret altid "Fordom")
+| id | Fordom | Svar | Sandhed (bagside) | Gruppe | Tjek |
+|---|---|---|---|---|---|
+| f1 | HHX er den nemme vej til en studenterhue. | fordom | HHX har samme adgangskrav. Samme mængde timer. Samme antal eksaminer. | p1 | TODO-FAKTA: adgangskrav, timetal og eksaminer |
+| f2 | På HHX skal du være matematisk og nørdet. | fordom | Du får matematik, ja. Du får bare det, der kan bruges i virkeligheden. | p2 | TODO-FAKTA: læreplan |
+| f3 | Du har kun valgt HHX, fordi du ikke vil have fysik og kemi. | begge | Ja. Og? | p3 | TODO-FAKTA: ingen obligatoriske naturfag |
+| f4 | Du skal læse økonomi eller være revisor, når du er færdig med HHX. | fordom | Jura, psykologi, lærer, sygeplejerske. HHX giver adgang til mere end økonomi. | p4 | TODO-FAKTA: adgangskrav |
+| f5 | De nye fag er svære og man skal vide en masse om virksomheder. | fordom | Virksomhedsøkonomi og afsætning er nye fag for alle. Alle starter fra nul. | p5 | |
+| f6 | HHX er kun for folk med lyseblå skjorter, dyre sko og designertasker. | fordom | Der er flere hvide sokker i Birkenstocks end der er jakkesæt. | p6 | |
+| f7 | EUX er for dem, der ikke kan klare gymnasiet. | fordom | Du skal kunne bestå gymnasiet på kun 2 år og får adgang til videregående uddannelse oveni. | p7 | TODO-FAKTA: EUX Business |
+| f8 | Du har kun valgt HHX, fordi du vil tjene mange penge. | begge | Det er jo ikke dårligt at have ambitioner. | p8 | |
+| f9 | Elever på HHX er snobbede. | fordom | Der er forskel på at klæde sig snobbet og være en snob. Vi er ikke snobber på hhx. | p9 | |
 
-| id | Udsagn | Svar | Forklaring | Gruppe | Aktiv | Tjek |
-|---|---|---|---|---|---|---|
-| v1 | HHX giver adgang til universitetet. | virkelighed | HHX er en studentereksamen og giver adgang til videregående uddannelser. | adgang | ja | |
-| v2 | Virksomhedsøkonomi er et nyt fag for alle. | virkelighed | Faget findes ikke i folkeskolen, så alle starter samme sted. | nyt-fag | ja | |
-| v3 | HHX er en 3-årig gymnasial uddannelse. | virkelighed | Tre år. Studenterhue. Samme som de andre gymnasier. | | ja | |
-| v4 | På EUX er du i praktik i en virksomhed og får løn. | virkelighed | Du kommer ud i en rigtig virksomhed og får elevløn. | eux-praktik | ja | TODO-FAKTA: praktik og elevløn |
-| v5 | På HHX har du et andet fremmedsprog, fx spansk eller tysk. | virkelighed | Sprog er en del af HHX. Handel foregår ikke kun på dansk. | | ja | TODO-FAKTA: obligatorisk 2. fremmedsprog og udbudte sprog |
-| v6 | Du vælger studieretning efter grundforløbet. | virkelighed | Du behøver ikke vide det hele fra dag ét. | | ja | TODO-FAKTA: tidspunkt for studieretningsvalg |
+f3 og f8 tager fordommen på sig i stedet for at afvise den. De tæller derfor som rigtige, uanset hvilken vej man swiper.
 
-Aktiv pulje: 7 fordom, 1 begge, 6 virkelighed. Med grupperne kan der altid trækkes 8 kort, der opfylder reglerne.
+**Sandheder som selvstændige udsagn** (nødvendige, ellers er svaret altid "Fordom")
+
+Sandheder fra kortenes bagside, der giver mening uden fordommen foran. "Ja. Og?", hvide sokker, ambitioner og snobber er udeladt, fordi de kun virker som svar. Forklaringen viser fordommen, sandheden svarer på. Hver sandhed deler gruppe med sin fordom, så de to aldrig kommer i samme spil.
+
+| id | Udsagn | Gruppe | Note |
+|---|---|---|---|
+| s1 | HHX har samme adgangskrav. Samme mængde timer. Samme antal eksaminer. | p1 | Ordret |
+| s2 | På HHX får du matematik, der kan bruges i virkeligheden. | p2 | Omskrevet, så det kan stå alene |
+| s4 | Jura, psykologi, lærer, sygeplejerske. HHX giver adgang til mere end økonomi. | p4 | Ordret |
+| s5 | Virksomhedsøkonomi og afsætning er nye fag for alle. Alle starter fra nul. | p5 | Ordret |
+| s7 | På EUX skal du kunne bestå gymnasiet på kun 2 år og får adgang til videregående uddannelse oveni. | p7 | "På EUX" tilføjet |
+
+Aktiv pulje: 7 fordom, 2 begge, 5 sandhed i 9 grupper. Trækningen bruger en søgning, der går tilbage, når et valg låser resten, så den altid finder 8 kort, der opfylder reglerne.
 
 ## 6. Spil 2: "Slikboden"
 
@@ -218,7 +222,7 @@ const CONFIG = {
     linje: "Virkelighedsnært. Virksomhedsnært.",
     skole: "Handelsgymnasiet Vestfyn"
   },
-  spil1: { antal: 8, minVirkelighed: 2, maxVirkelighed: 4, kort: [ /* se tabeller i afsnit 5 */ ] },
+  spil1: { antal: 8, minSandhed: 2, maxSandhed: 4, kort: [ /* se tabeller i afsnit 5 */ ] },
   spil2: { /* se model i afsnit 6 */ }
 };
 ```
@@ -242,7 +246,7 @@ Kør i mobil-viewport (iPhone 13 og Pixel 7 i Playwright):
 
 - [ ] Startskærm → Spil 1 → 8 kort via knapper → bevis-skærm med korrekt "X ud af 8".
 - [ ] Spil 1 kan også gennemføres med swipe (simulér pointer-drag).
-- [ ] Spil 1: over 200 trækninger med forskellige seeds overholder alle trækregler (8 kort, kun aktive, maks. ét pr. gruppe, 2–4 virkelighed/begge).
+- [ ] Spil 1: over 1000 trækninger med forskellige seeds overholder alle trækregler (8 kort, kun aktive, maks. ét pr. gruppe, 2–4 sandhed/begge).
 - [ ] Spil 1: "Spil igen" i samme besøg giver kun sete kort, når de usete er brugt op.
 - [ ] Kort med `svar: "begge"` tæller som rigtigt uanset swiperetning.
 - [ ] Startskærm → Spil 2 → 2 runder → afslutning → bevis-skærm med "X af 6 gode valg. Overskud: Y kr".
